@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ScholarScroll is a live online student library with protected in-browser reading and personal progress tracking."
+    />
+    <meta name="theme-color" content="#111827" />
+    <title>ScholarScroll Online Student Library</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:wght@400;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="public-mode">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <aside class="icon-sidebar" aria-label="Member navigation">
+      <a
+        class="sidebar-logo"
+        href="#dashboard"
+        data-route-link
+        aria-label="ScholarScroll dashboard"
+        >S</a
+      >
+      <nav class="sidebar-nav" aria-label="Dashboard sections">
+        <a
+          class="sidebar-link"
+          href="#dashboard"
+          data-route-link
+          data-route-group="dashboard"
+          data-tooltip="Home"
+          aria-label="Home"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"
+            ></path>
+          </svg>
+        </a>
+        <a
+          class="sidebar-link"
+          href="#catalog"
+          data-route-link
+          data-route-group="catalog"
+          data-tooltip="Live catalog"
+          aria-label="Live catalog"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"
+            ></path>
+            <path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20"></path>
+          </svg>
+        </a>
+        <a
+          class="sidebar-link"
+          href="#bookmarks"
+          data-route-link
+          data-route-group="bookmarks"
+          data-tooltip="Saved books"
+          aria-label="Saved books"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 3h12v18l-6-4-6 4V3Z"></path>
+          </svg>
+        </a>
+        <a
+          class="sidebar-link"
+          href="#settings"
+          data-route-link
+          data-route-group="settings"
+          data-tooltip="Settings"
+          aria-label="Settings"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21h-4v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3.1 14H3v-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.5V3h4v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1v4h-.1a1.7 1.7 0 0 0-1.5 1Z"
+            ></path>
+          </svg>
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <span
+          class="storage-dot"
+          id="storage-dot"
+          data-tooltip="Saved locally"
+          aria-label="Local storage active"
+        ></span>
+        <span
+          class="api-status-dot"
+          id="api-status-dot"
+          data-tooltip="Gutendex API"
+          aria-label="Gutendex API status"
+        ></span>
+      </div>
+    </aside>
+
+    <div class="app-frame">
+      <header class="top-header">
+        <div class="header-left">
+          <a
+            class="brand-container"
+            href="#store"
+            data-route-link
+            aria-label="ScholarScroll online student library"
+          >
+            <img
+              class="brand-logo"
+              src="./assets/logo.png"
+              alt="ScholarScroll logo"
+              width="48"
+              height="48"
+            />
+            <div class="brand-name">
+              <span class="brand-scholar">Scholar</span><span class="brand-scroll">Scroll</span>
+            </div>
+          </a>
+          <nav class="header-navigation" aria-label="Library navigation">
+            <a href="#store" data-route-link data-header-route="store"
+              >Discover</a
+            >
+            <a href="#catalog" data-route-link data-header-route="catalog"
+              >Books</a
+            >
+            <a href="#dashboard" data-route-link data-header-route="dashboard"
+              >My Library</a
+            >
+          </nav>
+        </div>
+
+        <label class="global-search" for="global-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m16.2 16.2 4.1 4.1"></path>
+          </svg>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Search 79,000+ public-domain books"
+            autocomplete="off"
+          />
+          <kbd>⌘ K</kbd>
+        </label>
+
+        <div class="auth-control" id="auth-control">
+          <button
+            class="button button-small"
+            type="button"
+            data-action="open-login"
+          >
+            Sign in
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <div class="route-view" id="route-view" aria-live="polite">
+          <div class="page-loader" role="status">
+            <span></span>
+            <p>Connecting to the live library…</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="modal" id="app-dialog" aria-labelledby="dialog-title">
+      <div class="modal-card">
+        <button
+          class="modal-close"
+          type="button"
+          data-action="close-modal"
+          aria-label="Close dialog"
+        >
+          ×
+        </button>
+        <div id="dialog-content"></div>
+      </div>
+    </dialog>
+
+    <div
+      class="toast-region"
+      id="toast-region"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+    <noscript
+      ><div class="noscript-message">
+        Lumina requires JavaScript for live catalog access and in-browser
+        reading.
+      </div></noscript
+    >
+
+    <!-- PDF.js remains available for administrator-supplied PDF documents. -->
+    <script type="module">
+      import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.mjs";
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.worker.mjs";
+      window.pdfjsLib = pdfjsLib;
+      window.dispatchEvent(new Event("pdfjs-ready"));
+    </script>
+    <script src="js/data.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/reader.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </body>
+</html>
