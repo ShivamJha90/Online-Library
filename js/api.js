@@ -111,9 +111,11 @@
       return this.request({ sort: "descending" }, signal);
     }
 
-    search(query, page = 1, signal = null) {
+    search(query, page = 1, signal = null, options = {}) {
       const parameters = { search: String(query).trim() };
       if (Number(page) > 1) parameters.page = Number(page);
+      if (options.language) parameters.languages = String(options.language).trim();
+      if (options.sort && options.sort !== "relevance") parameters.sort = String(options.sort).trim();
       return this.request(parameters, signal);
     }
 

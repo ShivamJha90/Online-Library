@@ -5,10 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="ScholarScroll is a live online student library with protected in-browser reading and personal progress tracking."
+      content="ScholarScroll is a live online student library with protected in-browser reading, reading streaks, achievement badges, certificates and personal progress tracking."
     />
-    <meta name="theme-color" content="#111827" />
-    <title>ScholarScroll Online Student Library</title>
+    <meta name="theme-color" content="#0d141e" />
+    <meta name="color-scheme" content="dark light" />
+    <title>ScholarScroll — Online Student Library</title>
+
+    <link rel="canonical" href="./" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+
+    <meta property="og:site_name" content="ScholarScroll" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ScholarScroll · Online Student Library" />
+    <meta
+      property="og:description"
+      content="Search 79,000+ public-domain books, read securely in the browser, and build a reading streak with badges and certificates."
+    />
+    <meta property="og:url" content="./" />
+    <meta property="og:image" content="./assets/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="ScholarScroll · Online Student Library" />
+    <meta
+      name="twitter:description"
+      content="A calmer way to read the classics. Live catalog, protected reader, streaks, badges and QR certificates."
+    />
+    <meta name="twitter:image" content="./assets/icon-512.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,10 +39,28 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:wght@400;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/styles.css?v=17" />
+
+    <script type="application/ld+json" id="structured-data">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ScholarScroll",
+        "description": "A live online student library for public-domain books with a protected reader, reading streaks, badges and certificates.",
+        "inLanguage": "en"
+      }
+    </script>
   </head>
   <body class="public-mode">
     <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div
+      class="network-banner"
+      id="network-banner"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></div>
 
     <aside class="icon-sidebar" aria-label="Member navigation">
       <a
@@ -57,6 +98,19 @@
               d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z"
             ></path>
             <path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20"></path>
+          </svg>
+        </a>
+        <a
+          class="sidebar-link"
+          href="#premium"
+          data-route-link
+          data-route-group="premium"
+          data-tooltip="Premium books"
+          aria-label="Premium books"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
           </svg>
         </a>
         <a
@@ -114,10 +168,11 @@
           >
             <img
               class="brand-logo"
-              src="./assets/logo.png"
-              alt="ScholarScroll logo"
+              src="./assets/logo-96.png"
+              alt=""
               width="48"
               height="48"
+              decoding="async"
             />
             <div class="brand-name">
               <span class="brand-scholar">Scholar</span><span class="brand-scroll">Scroll</span>
@@ -130,6 +185,9 @@
             <a href="#catalog" data-route-link data-header-route="catalog"
               >Books</a
             >
+            <a href="#premium" data-route-link data-header-route="premium"
+              >Premium</a
+            >
             <a href="#dashboard" data-route-link data-header-route="dashboard"
               >My Library</a
             >
@@ -141,13 +199,17 @@
             <circle cx="11" cy="11" r="7"></circle>
             <path d="m16.2 16.2 4.1 4.1"></path>
           </svg>
+          <span class="sr-only">Search public-domain books by title or author</span>
           <input
             id="global-search"
+            name="q"
             type="search"
             placeholder="Search 79,000+ public-domain books"
             autocomplete="off"
+            aria-label="Search public-domain books by title or author"
+            spellcheck="false"
           />
-          <kbd>⌘ K</kbd>
+          <kbd>Ctrl K</kbd>
         </label>
 
         <div class="auth-control" id="auth-control">
@@ -162,13 +224,28 @@
       </header>
 
       <main id="main-content" tabindex="-1">
-        <div class="route-view" id="route-view" aria-live="polite">
+        <p class="sr-only" id="route-announcer" aria-live="polite" aria-atomic="true"></p>
+        <div class="route-view" id="route-view">
           <div class="page-loader" role="status">
             <span></span>
             <p>Connecting to the live library…</p>
           </div>
         </div>
       </main>
+
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <img src="./assets/logo-96.png" alt="" width="32" height="32" loading="lazy" />
+          <div><strong>ScholarScroll</strong><span>A student-built library for public-domain books.</span></div>
+        </div>
+        <nav class="footer-nav" aria-label="Trust and information">
+          <a href="#about" data-route-link>About</a>
+          <a href="#sources" data-route-link>Sources &amp; licensing</a>
+          <a href="#privacy" data-route-link>Privacy</a>
+          <a href="#accessibility" data-route-link>Accessibility</a>
+        </nav>
+        <p class="footer-note">© <span id="footer-year">2026</span> ScholarScroll. Books from <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a> via <a href="https://gutendex.com/" target="_blank" rel="noopener noreferrer">Gutendex</a>. Local demo authentication.</p>
+      </footer>
     </div>
 
     <dialog class="modal" id="app-dialog" aria-labelledby="dialog-title">
@@ -193,8 +270,8 @@
     ></div>
     <noscript
       ><div class="noscript-message">
-        Lumina requires JavaScript for live catalog access and in-browser
-        reading.
+        ScholarScroll requires JavaScript for live catalog access and
+        in-browser reading.
       </div></noscript
     >
 
@@ -206,9 +283,10 @@
       window.pdfjsLib = pdfjsLib;
       window.dispatchEvent(new Event("pdfjs-ready"));
     </script>
-    <script src="js/data.js" defer></script>
-    <script src="js/api.js" defer></script>
-    <script src="js/reader.js" defer></script>
-    <script src="js/app.js" defer></script>
+    <script src="js/vendor/qrcode.js?v=17" defer></script>
+    <script src="js/data.js?v=17" defer></script>
+    <script src="js/api.js?v=17" defer></script>
+    <script src="js/reader.js?v=17" defer></script>
+    <script src="js/app.js?v=17" defer></script>
   </body>
 </html>

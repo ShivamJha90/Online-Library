@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Replace scholarscroll.example with the real deployment origin before publishing.
+Sitemap: https://scholarscroll.example/sitemap.xml
