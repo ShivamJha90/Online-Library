@@ -1706,8 +1706,8 @@
       if (this.elements.backendStatusDot) {
         this.elements.backendStatusDot.classList.toggle("is-online", active);
         this.elements.backendStatusDot.classList.toggle("is-offline", !active);
-        this.elements.backendStatusDot.dataset.tooltip = active ? "Local server connected" : "Local demo mode";
-        this.elements.backendStatusDot.setAttribute("aria-label", active ? "Local server connected" : "Local demo mode");
+        this.elements.backendStatusDot.dataset.tooltip = active ? "Library server connected" : "Local demo mode";
+        this.elements.backendStatusDot.setAttribute("aria-label", active ? "Library server connected" : "Local demo mode");
       }
       document.body.classList.toggle("backend-online", active);
       // Premium PDF availability depends on whether a backend is connected.
@@ -1715,7 +1715,7 @@
     }
 
     backendLabel() {
-      return this.backend?.available ? "Local server" : "Local demo mode";
+      return this.backend?.available ? "Library server" : "Local demo mode";
     }
 
     /**
@@ -2659,9 +2659,9 @@
             <button class="button" type="submit">Sign in</button>
             <button class="button button-secondary" type="button" data-action="open-register">Create an account</button>
             <p class="auth-hint">${server
-              ? "Accounts, purchases, vouchers and the two-device limit are checked by your local ScholarScroll server."
-              : "The local server is offline, so demo accounts run only in this browser."}</p>
-            <div class="demo-credentials"><strong>${server ? "Demo accounts on the local server" : "Local demo accounts"}</strong><span>${server
+              ? "Accounts, purchases, vouchers and the two-device limit are checked by the ScholarScroll server."
+              : "The backend is offline, so demo accounts run only in this browser."}</p>
+            <div class="demo-credentials"><strong>${server ? "Demo accounts on the server" : "Local demo accounts"}</strong><span>${server
               ? "Seeded accounts: maya@scholarscroll.local / reader2026 and elena@scholarscroll.local / admin2026."
               : "This static demo keeps authentication in your browser. Never enter a real password."}</span><div class="demo-login-buttons"><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="student">Student demo</button><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="admin">Admin demo</button></div></div>
           </form>
@@ -2673,7 +2673,7 @@
       const server = Boolean(this.backend?.available);
       this.modal.open(`
         <div class="login-layout">
-          <div class="login-intro"><span class="login-mark">S</span><p class="page-kicker">New member</p><h2 id="dialog-title">Create your account</h2><p>Your account is stored by the local ScholarScroll server. Use the same email on your certificate voucher.</p></div>
+          <div class="login-intro"><span class="login-mark">S</span><p class="page-kicker">New member</p><h2 id="dialog-title">Create your account</h2><p>Your account is stored by the ScholarScroll server. Use the same email on your certificate voucher.</p></div>
           <form class="auth-form" data-form="register">
             <label>Your name<input class="form-control" name="name" type="text" autocomplete="name" maxlength="80" placeholder="Your name" required></label>
             <label>Email address<input class="form-control" name="email" type="email" autocomplete="username" maxlength="160" placeholder="you@example.com" required></label>
@@ -2682,8 +2682,8 @@
             <button class="button" type="submit" ${server ? "" : "disabled"}>Create account</button>
             <button class="button button-secondary" type="button" data-action="open-login">Back to sign in</button>
             <p class="auth-hint">${server
-              ? "Registration is handled by the local Python/SQLite server. Passwords are hashed with PBKDF2; never reuse a real password in a demo."
-              : "Registration needs the local server. Start it with run-server.cmd, or use one of the demo accounts."}</p>
+              ? "Registration is handled by the Python/SQLite server. Passwords are hashed with PBKDF2; never reuse a real password in a demo."
+              : "Registration needs the backend. Start it locally with run-server.cmd, or connect this site with ?backend=https://your-api.example.com."}</p>
           </form>
         </div>
       `, "input[name='name']");
@@ -2763,7 +2763,7 @@
       const submit = form.querySelector("button[type='submit']");
       const error = form.querySelector("#register-error");
       if (!this.backend?.available) {
-        if (error) error.textContent = "Create an account requires the local server. Start it with run-server.cmd.";
+        if (error) error.textContent = "Create an account requires the library server. Start it with run-server.cmd or connect a backend URL.";
         return;
       }
       if (error) error.textContent = "";
@@ -3641,7 +3641,7 @@
       const voucherState = (voucher) => voucher.redeemed ? "used" : voucher.expired ? "expired" : "active";
       return `
         <section class="content-page settings-page">
-          <header class="page-intro"><div><p class="page-kicker">Account</p><h1>Profile and local data</h1><p>${user.server ? "This account is stored by the local ScholarScroll server." : "Authentication and reader state are scoped to this browser profile."} Reading notes and progress stay in this browser; purchases and devices are checked by the server when it is running.</p></div></header>
+          <header class="page-intro"><div><p class="page-kicker">Account</p><h1>Profile and local data</h1><p>${user.server ? "This account is stored by the ScholarScroll server." : "Authentication and reader state are scoped to this browser profile."} Reading notes and progress stay in this browser; purchases and devices are checked by the server when it is running.</p></div></header>
           <div class="settings-layout">
             <section class="settings-card">
               <h2>${escapeHTML(user.name)}</h2>
@@ -3656,10 +3656,10 @@
               <div class="settings-actions"><a class="button button-small" href="#premium" data-route-link>View premium plans</a><a class="button button-secondary button-small" href="#hindi" data-route-link>हिंदी पुस्तकालय</a></div>
             </section>
             <section class="settings-card settings-backend-card">
-              <h2>Local server <span class="backend-chip ${this.backend?.available ? "is-online" : ""}">${this.backend?.available ? "Connected" : "Offline"}</span></h2>
+              <h2>Library server <span class="backend-chip ${this.backend?.available ? "is-online" : ""}">${this.backend?.available ? "Connected" : "Offline"}</span></h2>
               <p>${this.backend?.available
                 ? `Connected to the Python/SQLite backend. Accounts, purchases, vouchers and the ${Config.MAX_DEVICES}-device limit are enforced by the server.`
-                : "The Python/SQLite backend is not running. Demo accounts and device limits fall back to this browser only. Start the server with run-server.cmd."}</p>
+                : "The Python/SQLite backend is not connected. Demo accounts and device limits fall back to this browser only. Start it locally with run-server.cmd, or open this site with ?backend=https://your-api.example.com."}</p>
               <p class="settings-hint">Server address: ${this.backend?.available ? escapeHTML(this.backend.baseUrl.replace(/\/api$/, "")) : "not connected"} · Hindi texts are proxied and cached by the server when it is online.</p>
               <div class="settings-actions"><button class="button button-secondary button-small" type="button" data-action="check-backend">Check connection</button></div>
             </section>
@@ -3685,8 +3685,8 @@
                 </li>
               `).join("")}</ul>
               <p class="settings-hint">${user.server
-                ? "Device limits and sessions are enforced by the local server."
-                : "Device limits are enforced inside this browser demo. Start the local server to enforce them across devices."}</p>
+                ? "Device limits and sessions are enforced by the backend."
+                : "Device limits are enforced inside this browser demo. Connect the backend to enforce them across devices."}</p>
             </section>
             <section class="settings-card">
               <h2>Reader appearance</h2>
@@ -3701,7 +3701,7 @@
             </section>
             <section class="settings-card">
               <h2>Storage &amp; privacy</h2>
-              <p>Metadata, notes and reader positions use localStorage. Offline document bytes use IndexedDB. When the local server is running, account, entitlement, voucher and device records are also stored in its SQLite database.</p>
+              <p>Metadata, notes and reader positions use localStorage. Offline document bytes use IndexedDB. When the backend is connected, account, entitlement, voucher and device records are also stored in its SQLite database.</p>
               <p class="storage-estimate"><span>Browser storage used</span><strong data-storage-estimate>Calculating…</strong></p>
               <div class="settings-actions"><button class="button button-danger" type="button" data-action="request-reset">Reset local state</button><button class="button button-secondary" type="button" data-action="logout">Log out</button></div>
             </section>
@@ -3765,7 +3765,7 @@
             <article class="prose-card"><h2>Reading streaks &amp; badges</h2><p>Every day you read is recorded. Milestones at 1, 7, 30, 180 and 365 consecutive days unlock a badge carrying your name and a personal congratulation.</p></article>
             <article class="prose-card"><h2>Certificates &amp; vouchers</h2><p>Completing three books inside a seven-day window unlocks an Avid Reader certificate and a single-use discount voucher for the premium shelf. The QR code verifies the reading record but never contains the voucher code.</p></article>
             <article class="prose-card"><h2>Premium shelf</h2><p>Three demo plans: ₹50 for a month of premium access, ₹150 for one premium book for life, or ₹1000 for lifetime all-access. No real payment is taken until a payment provider is connected.</p></article>
-            <article class="prose-card"><h2>Optional local server</h2><p>Run <code>run-server.cmd</code> to start a Python/SQLite backend on your machine. It handles real server-side accounts, the two-device limit, purchases and vouchers. Without it the app falls back to browser-only demo mode.</p></article>
+            <article class="prose-card"><h2>Optional library server</h2><p>Run <code>run-server.cmd</code> locally, or host the included Python/SQLite backend, to enable server-side accounts, the two-device limit, purchases and vouchers. Without it the app falls back to browser-only demo mode.</p></article>
             <article class="prose-card"><h2>Honest boundaries</h2><p>Certificates are reading records, not legal credentials. Screenshot blocking is a deterrent, not a guarantee. Payments are simulated until a provider is added.</p></article>
           </div>
           <div class="prose-actions"><a class="button" href="#catalog" data-route-link>Browse the catalog</a><a class="button button-secondary" href="#hindi" data-route-link>हिंदी पुस्तकालय</a><a class="button button-secondary" href="#sources" data-route-link>Read about our sources</a></div>
@@ -3791,11 +3791,11 @@
     renderPrivacy() {
       return `
         <section class="content-page prose-page">
-          <header class="page-intro"><div><p class="page-kicker">Privacy</p><h1>Your reading stays on your device</h1><p>ScholarScroll has no analytics, advertising or tracking pixels. A local Python/SQLite server can store accounts and purchases on your own machine.</p></div></header>
+          <header class="page-intro"><div><p class="page-kicker">Privacy</p><h1>Your reading stays on your device</h1><p>ScholarScroll has no analytics, advertising or tracking pixels. An optional Python/SQLite backend can store accounts and purchases on a server you control.</p></div></header>
           <div class="prose-grid">
             <article class="prose-card"><h2>Stored in your browser</h2><p>localStorage keeps your session flag, reading history, streak days, badges, certificates, reader preferences, bookmarks and notes. IndexedDB keeps optional offline book bytes and administrator PDFs.</p></article>
-            <article class="prose-card"><h2>Stored by the local server</h2><p>When you start <code>run-server.cmd</code>, the server keeps your account, hashed password, session, device list, orders and vouchers in <code>server/data/scholarscroll.sqlite3</code>. That file is ignored by git and stays on your computer.</p></article>
-            <article class="prose-card"><h2>Sent over the network</h2><p>Search terms and book IDs go to Gutendex. Book text may be requested from Project Gutenberg, Internet Archive or the local server. PDF.js and web fonts load from public CDNs. These requests are subject to those services' policies.</p></article>
+            <article class="prose-card"><h2>Stored by the library server</h2><p>When you connect the backend, the server keeps your account, hashed password, session, device list, orders and vouchers in its SQLite database (<code>server/data/scholarscroll.sqlite3</code> for a local run). The database is ignored by git.</p></article>
+            <article class="prose-card"><h2>Sent over the network</h2><p>Search terms and book IDs go to Gutendex. Book text may be requested from Project Gutenberg, Internet Archive or the connected backend. PDF.js and web fonts load from public CDNs. These requests are subject to those services' policies.</p></article>
             <article class="prose-card"><h2>Clearing your data</h2><p>Use “Reset local state” in Settings to clear browser profiles and reading data. Server data can be removed by deleting the SQLite file while the server is stopped. You can also clear site data in your browser.</p></article>
             <article class="prose-card"><h2>Certificates are public by design</h2><p>A certificate QR code contains the recipient name, date and completed book titles. Anyone who scans it can read that information. Voucher codes are deliberately excluded from the QR payload.</p></article>
           </div>
