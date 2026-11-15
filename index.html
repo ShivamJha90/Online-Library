@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="ScholarScroll is a live online student library with protected in-browser reading, reading streaks, achievement badges, certificates and personal progress tracking."
+      content="ScholarScroll is a live online student library with protected in-browser reading, a free Hindi classics shelf, reading streaks, achievement badges, certificates and personal progress tracking."
     />
     <meta name="theme-color" content="#0d141e" />
     <meta name="color-scheme" content="dark light" />
+    <!-- Empty on static hosts; the Python backend injects content="auto" so
+         the browser knows to probe the same origin for /api/health. -->
+    <meta name="scholarscroll-backend" content="" />
     <title>ScholarScroll — Online Student Library</title>
 
     <link rel="canonical" href="./" />
@@ -39,15 +42,15 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:wght@400;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=17" />
+    <link rel="stylesheet" href="css/styles.css?v=25" />
 
     <script type="application/ld+json" id="structured-data">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "ScholarScroll",
-        "description": "A live online student library for public-domain books with a protected reader, reading streaks, badges and certificates.",
-        "inLanguage": "en"
+        "description": "A live online student library for public-domain books, with a free Hindi classics shelf, a protected reader, reading streaks, badges and certificates.",
+        "inLanguage": ["en", "hi"]
       }
     </script>
   </head>
@@ -61,6 +64,19 @@
       aria-live="polite"
       hidden
     ></div>
+
+    <div
+      class="content-shield"
+      id="content-shield"
+      role="presentation"
+      aria-hidden="true"
+    >
+      <div class="content-shield-card">
+        <span class="content-shield-mark">S</span>
+        <strong>Protected reading</strong>
+        <p>Library pages hide while this window is inactive or a screenshot shortcut is pressed. Websites cannot fully block screen capture.</p>
+      </div>
+    </div>
 
     <aside class="icon-sidebar" aria-label="Member navigation">
       <a
@@ -115,6 +131,19 @@
         </a>
         <a
           class="sidebar-link"
+          href="#hindi"
+          data-route-link
+          data-route-group="hindi"
+          data-tooltip="हिंदी पुस्तकालय"
+          aria-label="Hindi library"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5h9a3 3 0 0 1 3 3v12a3 3 0 0 0-3-3H4V5Z"></path>
+            <path d="M20 5h-2a3 3 0 0 0-2 .8V20a3 3 0 0 1 2-1h2V5Z"></path>
+          </svg>
+        </a>
+        <a
+          class="sidebar-link"
           href="#bookmarks"
           data-route-link
           data-route-group="bookmarks"
@@ -154,6 +183,12 @@
           data-tooltip="Gutendex API"
           aria-label="Gutendex API status"
         ></span>
+        <span
+          class="backend-status-dot is-offline"
+          id="backend-status-dot"
+          data-tooltip="Local demo mode"
+          aria-label="Local server status"
+        ></span>
       </div>
     </aside>
 
@@ -187,6 +222,9 @@
             >
             <a href="#premium" data-route-link data-header-route="premium"
               >Premium</a
+            >
+            <a href="#hindi" data-route-link data-header-route="hindi"
+              >हिंदी</a
             >
             <a href="#dashboard" data-route-link data-header-route="dashboard"
               >My Library</a
@@ -244,7 +282,7 @@
           <a href="#privacy" data-route-link>Privacy</a>
           <a href="#accessibility" data-route-link>Accessibility</a>
         </nav>
-        <p class="footer-note">© <span id="footer-year">2026</span> ScholarScroll. Books from <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a> via <a href="https://gutendex.com/" target="_blank" rel="noopener noreferrer">Gutendex</a>. Local demo authentication.</p>
+        <p class="footer-note">© <span id="footer-year">2026</span> ScholarScroll. Books from <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a> via <a href="https://gutendex.com/" target="_blank" rel="noopener noreferrer">Gutendex</a>; Hindi classics from <a href="https://archive.org/" target="_blank" rel="noopener noreferrer">Internet Archive</a>. Optional local Python/SQLite server for accounts.</p>
       </footer>
     </div>
 
@@ -283,10 +321,11 @@
       window.pdfjsLib = pdfjsLib;
       window.dispatchEvent(new Event("pdfjs-ready"));
     </script>
-    <script src="js/vendor/qrcode.js?v=17" defer></script>
-    <script src="js/data.js?v=17" defer></script>
-    <script src="js/api.js?v=17" defer></script>
-    <script src="js/reader.js?v=17" defer></script>
-    <script src="js/app.js?v=17" defer></script>
+    <script src="js/vendor/qrcode.js?v=25" defer></script>
+    <script src="js/data.js?v=25" defer></script>
+    <script src="js/api.js?v=25" defer></script>
+    <script src="js/backend.js?v=25" defer></script>
+    <script src="js/reader.js?v=25" defer></script>
+    <script src="js/app.js?v=25" defer></script>
   </body>
 </html>

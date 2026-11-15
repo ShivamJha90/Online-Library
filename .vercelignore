@@ -1,0 +1,19 @@
+# Python backend and local tooling are not part of the static Vercel build.
+# Deploy the backend separately and point the front end at it with
+# ?backend=https://your-api.example.com (or the scholarscroll-backend meta tag).
+server/
+run-server.cmd
+serve-local.cmd
+README.md
+Dockerfile
+.dockerignore
+*.sqlite3
+__pycache__/
+*.pyc
+.git/
+.gitignore
+
+# Copyrighted premium PDFs are not part of the public static deployment.
+# The Python backend serves them from its own origin; the front end rewrites
+# repository-relative PDF paths through `backend.assetUrl()`.
+assets/premium/

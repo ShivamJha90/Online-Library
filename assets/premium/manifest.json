@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-11-15",
+  "note": "Presence of this file tells the front end that the bundled premium PDFs are deployed on the current origin. It is excluded from the static Vercel build together with this folder.",
+  "files": [
+    "acres-of-diamonds.pdf",
+    "as-a-man-thinketh.pdf",
+    "atomic-habits.pdf",
+    "the-4-hour-workweek.pdf",
+    "the-almanack-of-naval-ravikant.pdf",
+    "the-art-of-money-getting.pdf",
+    "the-game-of-life-and-how-to-play-it.pdf",
+    "the-power-of-your-subconscious-mind.pdf",
+    "the-richest-man-in-babylon.pdf",
+    "the-science-of-getting-rich.pdf",
+    "think-and-grow-rich.pdf",
+    "wealth-emerson.pdf"
+  ]
+}

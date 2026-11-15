@@ -51,9 +51,48 @@
         if (value !== null && value !== undefined && value !== "") url.searchParams.set(key, String(value));
       });
 
-      // Gutendex is a public service and can occasionally stall on expensive
-      // queries. A local controller combines caller cancellation with a hard
-      // timeout so loading indicators always resolve to data or an error state.
+      // Gutendex is a public service and can stall or briefly drop a
+      // connection. Two attempts with a short pause recover from most
+      // transient failures without making the reader wait too long.
+      const attempts = 2;
+      let lastError = null;
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        try {
+          return await this.fetchPage(url, signal);
+        } catch (error) {
+          lastError = error;
+          if (error?.name === "AbortError" || signal?.aborted) throw error;
+          const retryable = !error.status || error.status >= 500 || error.status === 429;
+          if (!retryable || attempt === attempts - 1) throw error;
+          await this.pause(700, signal);
+        }
+      }
+      throw lastError;
+    }
+
+    pause(milliseconds, signal) {
+      return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+          reject(signal.reason || new DOMException("Aborted", "AbortError"));
+          return;
+        }
+        const finish = () => {
+          window.clearTimeout(timer);
+          signal?.removeEventListener("abort", abort);
+          resolve();
+        };
+        const abort = () => {
+          window.clearTimeout(timer);
+          reject(signal.reason || new DOMException("Aborted", "AbortError"));
+        };
+        const timer = window.setTimeout(finish, milliseconds);
+        signal?.addEventListener("abort", abort, { once: true });
+      });
+    }
+
+    async fetchPage(url, signal) {
+      // A local controller combines caller cancellation with a hard timeout so
+      // loading indicators always resolve to data or an error state.
       const requestController = new AbortController();
       let timedOut = false;
       const forwardAbort = () => requestController.abort(signal?.reason);
@@ -62,7 +101,7 @@
       const timeout = window.setTimeout(() => {
         timedOut = true;
         requestController.abort();
-      }, 20000);
+      }, 7000);
 
       let response;
       try {
@@ -73,26 +112,26 @@
           signal: requestController.signal
         });
       } catch (error) {
-        if (timedOut) throw new LibraryApiError("The live library request timed out. Try a shorter search.");
+        if (timedOut) throw new LibraryApiError("The live library is taking longer than usual. Showing saved books while it reconnects.");
         if (signal?.aborted || error.name === "AbortError") throw error;
-        throw new LibraryApiError("The live library could not be reached. Check your connection and retry.");
+        throw new LibraryApiError("The live library could not be reached. Check your connection.");
       } finally {
         window.clearTimeout(timeout);
         signal?.removeEventListener("abort", forwardAbort);
       }
 
       if (!response.ok) {
-        throw new LibraryApiError(`Gutendex returned HTTP ${response.status}.`, response.status);
+        throw new LibraryApiError(`The live library returned HTTP ${response.status}.`, response.status);
       }
 
       let payload;
       try {
         payload = await response.json();
       } catch {
-        throw new LibraryApiError("Gutendex returned an unreadable response.", response.status);
+        throw new LibraryApiError("The live library returned an unreadable response.", response.status);
       }
       if (!payload || !Array.isArray(payload.results)) {
-        throw new LibraryApiError("Gutendex returned an unexpected data shape.", response.status);
+        throw new LibraryApiError("The live library returned an unexpected data shape.", response.status);
       }
 
       return {

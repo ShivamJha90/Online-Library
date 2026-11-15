@@ -599,6 +599,258 @@
     }
   ];
 
+  /* A curated Hindi shelf. Most titles are public-domain scans hosted by the
+     Internet Archive; the local Python backend proxies and caches their text
+     so the browser never has to fight Archive.org's CORS rules. A few titles
+     are link-only because no clean public-domain text copy was available. */
+  const hindiBook = ({ key, title, author, category, summary, archiveId, archiveFile, externalUrl }) => {
+    const reader = archiveId && archiveFile ? {
+      engine: "text",
+      sourceUrl: `https://archive.org/download/${encodeURIComponent(archiveId)}/${encodeURIComponent(archiveFile)}`,
+      mimeType: "text/plain; charset=utf-8"
+    } : null;
+    return {
+      key,
+      source: "hindi",
+      title,
+      author,
+      authors: [author],
+      category,
+      language: "hi",
+      languages: ["hi"],
+      summary,
+      coverUrl: archiveId ? `https://archive.org/services/img/${encodeURIComponent(archiveId)}` : "",
+      sourceUrl: archiveId ? `https://archive.org/details/${archiveId}` : externalUrl,
+      downloadCount: 0,
+      copyright: false,
+      hindi: true,
+      archive: archiveId ? { identifier: archiveId, file: archiveFile } : null,
+      reader
+    };
+  };
+
+  const hindiBooks = [
+    hindiBook({
+      key: "hindi-bhagavad-gita",
+      title: "श्रीमद्भगवद्गीता",
+      author: "वेद व्यास · गीताप्रेस संस्करण",
+      category: "भगवद्गीता",
+      summary: "कर्म, ज्ञान और भक्ति का अमर संवाद — श्रीकृष्ण और अर्जुन के बीच जीवन के अर्थ पर सरल हिंदी टीका सहित।",
+      archiveId: "geeta_202007",
+      archiveFile: "श्रीमद भगवत गीता Geeta_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-valmiki-ramayan",
+      title: "वाल्मीकि रामायण · अयोध्याकांड",
+      author: "महर्षि वाल्मीकि",
+      category: "रामायण",
+      summary: "राम के वनवास, भरत के त्याग और अयोध्या की भावनाओं का मार्मिक कांड — संस्कृत श्लोक और हिंदी अनुवाद सहित।",
+      archiveId: "ramayan_202005",
+      archiveFile: "बालमीकि रामायण अयोध्याकांड_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-ramcharitmanas",
+      title: "रामचरितमानस",
+      author: "गोस्वामी तुलसीदास",
+      category: "रामायण",
+      summary: "अवधी की सबसे प्रिय रामकथा — बालकांड से उत्तरकांड तक, दोहा-चौपाई की लय में जीवन की मर्यादा और भक्ति।",
+      archiveId: "in.ernet.dli.2015.342236",
+      archiveFile: "2015.342236.99999990231847_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-mahabharat-ashramvasik",
+      title: "महाभारत · आश्रमवासिक पर्व",
+      author: "वेद व्यास",
+      category: "महाभारत",
+      summary: "युद्ध के बाद हस्तिनापुर के राजा और वनगमन — वृद्धावस्था, राजधर्म और वनप्रस्थ की शिक्षा देने वाला पर्व।",
+      archiveId: "15ashramvasikparva",
+      archiveFile: "15ashramvasikparva_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-mahabharat-shalya",
+      title: "महाभारत · शल्य पर्व",
+      author: "वेद व्यास",
+      category: "महाभारत",
+      summary: "कुरुक्षेत्र का निर्णायक संग्राम, शल्य की सेनापतित्व और कर्ण-अर्जुन संघर्ष की गाथा।",
+      archiveId: "09shalyaparva",
+      archiveFile: "09shalyaparva_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-chanakya-niti",
+      title: "सम्पूर्ण चाणक्य नीति",
+      author: "आचार्य चाणक्य",
+      category: "नीति और जीवन",
+      summary: "राजनीति, मित्रता, परिश्रम और चरित्र पर चाणक्य के कालजयी सूत्र — आज के जीवन में सीधे काम आने वाली नीति।",
+      archiveId: "hindi_202507",
+      archiveFile: "सम्पूर्ण चाणक्य नीति Hindi_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-godaan",
+      title: "गोदान",
+      author: "प्रेमचंद",
+      category: "उपन्यास",
+      summary: "होरी और धनिया की कथा — किसानी, गरीबी, सपनों और सामाजिक बदलाव का हिंदी का सबसे बड़ा महाकाव्यात्मक उपन्यास।",
+      archiveId: "godaan-upanyas-premchand-parikalpana",
+      archiveFile: "Godaan upanyas -- Premchand --  Parikalpana_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-premchand-stories",
+      title: "प्रेमचंद की कहानियाँ",
+      author: "प्रेमचंद",
+      category: "कहानी",
+      summary: "ईदगाह, कफन, पूस की रात जैसी कहानियों का संग्रह — आम आदमी की करुणा, हास्य और संघर्ष।",
+      archiveId: "StoriesByPremchand",
+      archiveFile: "Stories By Premchand_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-bhagwat-puran",
+      title: "भागवत पुराण",
+      author: "वेद व्यास",
+      category: "पुराण",
+      summary: "श्रीकृष्ण की लीलाओं, भक्ति और दशावतार की कथाएँ — भारतीय भक्ति परंपरा का हृदय।",
+      archiveId: "puran_bhagwat",
+      archiveFile: "Bhagvat_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-shiv-puran",
+      title: "शिव पुराण",
+      author: "वेद व्यास",
+      category: "पुराण",
+      summary: "शिव की महिमा, ज्योतिर्लिंग, सती-कथा और शैव दर्शन — भोले शंकर की कथा का विस्तृत हिंदी वर्णन।",
+      archiveId: "puran_shiv",
+      archiveFile: "Shiv_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-vishnu-puran",
+      title: "विष्णु पुराण",
+      author: "वेद व्यास",
+      category: "पुराण",
+      summary: "सृष्टि, प्रलय, मन्वंतर और विष्णु के अवतारों की पुराणकथा — ब्रह्मांड के रहस्यों का हिंदी वर्णन।",
+      archiveId: "vishnu-puran_hindi",
+      archiveFile: "Vishnu Purana_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-kabir-bijak",
+      title: "कबीर बीजक",
+      author: "संत कबीर",
+      category: "कविता और दर्शन",
+      summary: "कबीर के साखी, सबद और रमैनी — सांप्रदायिकता और आडंबर पर तीखा प्रहार, भीतर की खोज का संदेश।",
+      archiveId: "bijak",
+      archiveFile: "कबीर साहेब का बीजक_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-hitopadesh",
+      title: "हितोपदेश",
+      author: "नारायण पंडित",
+      category: "नीति और जीवन",
+      summary: "मित्रता, विवेक और व्यवहार कौशल सिखाने वाली पशु-कथाएँ — पंचतंत्र परंपरा की सरल हिंदी प्रस्तुति।",
+      archiveId: "hindi_202408",
+      archiveFile: "हितोपदेश _ hindi_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-panchatantra",
+      title: "पंचतंत्र की कहानियाँ",
+      author: "विष्णु शर्मा",
+      category: "नीति और जीवन",
+      summary: "चालाक लोमड़ी, कौवे और शेर की कहानियों से जीवन की व्यावहारिक बुद्धि — हर उम्र के पाठकों के लिए।",
+      archiveId: "panchan-part2",
+      archiveFile: "panchan-part2_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-panchatantra-vistar",
+      title: "पंचतंत्र · विस्तृत संस्करण",
+      author: "विष्णु शर्मा",
+      category: "नीति और जीवन",
+      summary: "पंचतंत्र की अधिक कहानियाँ और विस्तृत टीका — राजनीति, मित्रता और व्यवहारिक ज्ञान का भंडार।",
+      archiveId: "panchatantra0000vidy",
+      archiveFile: "panchatantra0000vidy_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-yoga-vasistha",
+      title: "योग वासिष्ठ",
+      author: "महर्षि वाल्मीकि",
+      category: "दर्शन",
+      summary: "राम और वसिष्ठ का संवाद — मन, माया, वैराग्य और मुक्ति पर भारतीय दर्शन का सबसे गहरा ग्रंथ।",
+      archiveId: "ag-1_20210526_202105",
+      archiveFile: "AG-1_new_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-surdas",
+      title: "सूरदास पदावली",
+      author: "सूरदास",
+      category: "कविता और दर्शन",
+      summary: "कृष्ण-भक्ति की सर्वोत्तम पदावली — वात्सल्य, मिलन और विरह के भावों में डूबी ब्रजभाषा की कविता।",
+      archiveId: "dli.language.1229",
+      archiveFile: "dli.language.1229_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-meera-padawali",
+      title: "मीराबाई पदावली",
+      author: "मीराबाई",
+      category: "कविता और दर्शन",
+      summary: "गिरधर के प्रति मीरा की निर्मल भक्ति — राजमहल से वन तक, प्रेम और समर्पण के अमर पद।",
+      externalUrl: "https://hi.wikisource.org/wiki/मीराबाई"
+    }),
+    hindiBook({
+      key: "hindi-kautilya-arthashastra",
+      title: "कौटिल्य अर्थशास्त्र",
+      author: "आचार्य कौटिल्य",
+      category: "नीति और जीवन",
+      summary: "राज्य, अर्थ, न्याय और कूटनीति का प्राचीन भारतीय शास्त्र — चाणक्य की राजनीतिक बुद्धि का मूल ग्रंथ।",
+      externalUrl: "https://archive.org/search?query=अर्थशास्त्र"
+    }),
+    hindiBook({
+      key: "hindi-garud-puran",
+      title: "गरुड़ पुराण",
+      author: "वेद व्यास",
+      category: "पुराण",
+      summary: "जीवन, मृत्यु और परलोक की अवधारणा — गरुड़ और विष्णु के संवाद में नैतिकता और कर्म का वर्णन।",
+      externalUrl: "https://archive.org/details/full-garuda-puran-in-hindi-mannmandir-garudpuran"
+    })
+  ];
+
+  /* A small bundled shelf used only when Gutendex cannot be reached and no
+     cached results exist. These are public-domain Project Gutenberg editions
+     with cover and text URLs, so the storefront still shows readable books
+     instead of an empty error panel. */
+  const starterBook = (id, title, author, category, downloadCount) => ({
+    key: `gutenberg-${id}`,
+    id,
+    source: "gutendex",
+    starter: true,
+    title,
+    author,
+    authors: [author],
+    category,
+    subjects: [],
+    languages: ["en"],
+    summary: `${title} by ${author}, a public-domain edition available through Project Gutenberg.`,
+    coverUrl: `https://www.gutenberg.org/cache/epub/${id}/pg${id}.cover.medium.jpg`,
+    sourceUrl: `https://www.gutenberg.org/ebooks/${id}`,
+    downloadCount,
+    copyright: false,
+    reader: {
+      engine: "text",
+      sourceUrl: `https://www.gutenberg.org/cache/epub/${id}/pg${id}.txt`,
+      mimeType: "text/plain; charset=utf-8"
+    }
+  });
+
+  const offlineStarterBooks = [
+    starterBook(1342, "Pride and Prejudice", "Jane Austen", "Classic fiction", 72000),
+    starterBook(84, "Frankenstein; Or, The Modern Prometheus", "Mary Shelley", "Gothic", 64000),
+    starterBook(11, "Alice's Adventures in Wonderland", "Lewis Carroll", "Children", 59000),
+    starterBook(1661, "The Adventures of Sherlock Holmes", "Arthur Conan Doyle", "Mystery", 55000),
+    starterBook(2701, "Moby Dick; Or, The Whale", "Herman Melville", "Adventure", 51000),
+    starterBook(514, "Little Women", "Louisa May Alcott", "Classic fiction", 47000),
+    starterBook(35, "The Time Machine", "H. G. Wells", "Science fiction", 43000),
+    starterBook(55, "The Wonderful Wizard of Oz", "L. Frank Baum", "Children", 40000),
+    starterBook(2680, "Meditations", "Marcus Aurelius", "Philosophy", 37000),
+    starterBook(132, "The Art of War", "Sun Tzu", "Strategy", 34000),
+    starterBook(205, "Walden", "Henry David Thoreau", "Nature", 31000),
+    starterBook(174, "The Picture of Dorian Gray", "Oscar Wilde", "Gothic", 29000)
+  ];
+
   const users = [
     {
       id: "student-maya",
@@ -621,7 +873,7 @@
   ];
 
   const createInitialState = () => ({
-    schemaVersion: 7,
+    schemaVersion: 8,
     session: { currentUserId: null, authenticatedAt: null },
     catalogRecords: {},
     customBooks: [],
@@ -665,14 +917,20 @@
     },
     achievements: [],
     badges: [],
-    /* Legacy premium-unlock records. Retained so a future paid tier can reuse
-       the schema; the current build never gates reading on them. */
-    premiumUnlocks: {
-      "student-maya": {},
-      "admin-elena": {}
+    /* Paid premium access per member: an active monthly window, a lifetime
+       all-access flag, and lifetime unlocks for individual titles. */
+    premiumAccess: {
+      "student-maya": { monthlyUntil: null, lifetimeAll: false, books: {} },
+      "admin-elena": { monthlyUntil: null, lifetimeAll: false, books: {} }
     },
-    /* Redemption ledger keyed by certificate ID. Kept in state so a local reset
-       clears it together with the rest of the demo data. */
+    /* Local demo order ledger. No real payment is processed. */
+    orders: [],
+    /* Device sessions used to enforce the two-device limit per account. */
+    deviceSessions: {
+      "student-maya": [],
+      "admin-elena": []
+    },
+    /* Discount vouchers issued with certificates, keyed by certificate ID. */
     rewardClaims: {},
     preferences: {
       searchQuery: "",
@@ -691,14 +949,17 @@
     APP_NAME: "ScholarScroll",
     APP_TAGLINE: "Online Student Library",
     DEMO_MODE: true,
-    STATE_KEY: "scholarscroll-library-v7",
+    STATE_KEY: "scholarscroll-library-v8",
     LEGACY_STATE_KEYS: [
+      "scholarscroll-library-v7",
       "scholarscroll-library-v6",
       "lumina-live-library-v5",
       "lumina-library-dashboard-v4",
       "lumina-library-dashboard-v3"
     ],
-    SCHEMA_VERSION: 7,
+    SCHEMA_VERSION: 8,
+    /* The Python backend is probed at same-origin /api, then at this port. */
+    BACKEND_PORT: 8000,
     GUTENDEX_BASE_URL: "https://gutendex.com/books/",
     TEXT_PROXY_BASE_URL: "https://r.jina.ai/",
     PDF_JS_VERSION: "6.4.299",
@@ -710,8 +971,44 @@
     AVID_READER_WINDOW_DAYS: 7,
     STREAK_MILESTONES: [1, 7, 30, 180, 365],
     CERTIFICATE_REWARD_DAYS: 7,
+    /* Paid premium plans (local demo prices, Indian rupees). */
+    PREMIUM_PLANS: [
+      {
+        id: "monthly",
+        name: "Monthly access",
+        price: 50,
+        scope: "all",
+        durationDays: 30,
+        tagline: "Every premium book for one month.",
+        detail: "One month of unlimited premium reading. Renews only when you choose."
+      },
+      {
+        id: "single",
+        name: "Lifetime single book",
+        price: 150,
+        scope: "book",
+        durationDays: null,
+        tagline: "Own one premium title for life.",
+        detail: "Pick any one readable premium title and keep lifetime access to it."
+      },
+      {
+        id: "lifetime",
+        name: "Lifetime all-access",
+        price: 1000,
+        scope: "all",
+        durationDays: null,
+        tagline: "Every premium book, forever.",
+        detail: "One payment for lifetime access to the entire premium shelf."
+      }
+    ],
+    VOUCHER_PERCENTS: [10, 20, 30, 40, 50],
+    VOUCHER_VALID_DAYS: 7,
+    MAX_DEVICES: 2,
     PREMIUM_BOOKS: premiumBooks,
     PREMIUM_SPOTLIGHT: premiumSpotlight,
+    HINDI_BOOKS: hindiBooks,
+    hindiBooks,
+    OFFLINE_STARTER_BOOKS: offlineStarterBooks,
     DAY_IN_MS,
     dayKey,
     seedBooks,

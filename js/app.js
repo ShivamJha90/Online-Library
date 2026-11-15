@@ -10,6 +10,7 @@
   const Config = window.LibraryConfig;
   const ApiModule = window.LibraryApi;
   const ReaderModule = window.LibraryReaders;
+  const BackendModule = window.BackendModule || null;
   if (!Config || !ApiModule || !ReaderModule) throw new Error("ScholarScroll modules loaded in the wrong order.");
 
   const ENTITIES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" };
@@ -173,7 +174,7 @@
           if (legacy) {
             const parsed = JSON.parse(legacy);
             const migrated = this.mergeLegacyRewardClaims(
-              this.normalize([5, 6].includes(parsed?.schemaVersion) ? parsed : this.migrateLegacy(parsed))
+              this.normalize([5, 6, 7].includes(parsed?.schemaVersion) ? parsed : this.migrateLegacy(parsed))
             );
             window.localStorage.setItem(this.config.STATE_KEY, JSON.stringify(migrated));
             return migrated;
@@ -227,7 +228,7 @@
       if (!candidate || typeof candidate !== "object") return this.config.createInitialState();
       if (candidate.schemaVersion !== this.config.SCHEMA_VERSION) {
         if (candidate.schemaVersion === 5) candidate = this.upgradeV5(candidate);
-        else if (candidate.schemaVersion !== 6) return this.config.createInitialState();
+        else if (![6, 7].includes(candidate.schemaVersion)) return this.config.createInitialState();
       }
       const initial = this.config.createInitialState();
       const validUser = this.config.users.some((user) => user.id === candidate.session?.currentUserId);
@@ -247,7 +248,11 @@
         savedBookRecords: {},
         achievements: Array.isArray(candidate.achievements) ? candidate.achievements.map((item) => ({ ...item })) : [],
         badges: Array.isArray(candidate.badges) ? candidate.badges.filter((badge) => badge && badge.userId && badge.days).map((badge) => ({ ...badge })) : [],
-        premiumUnlocks: this.normalizePerUserObject(candidate.premiumUnlocks, initial.premiumUnlocks),
+        premiumAccess: this.normalizePremiumAccess(candidate.premiumAccess, candidate.premiumUnlocks, initial.premiumAccess),
+        orders: Array.isArray(candidate.orders)
+          ? candidate.orders.filter((order) => order && order.userId && order.planId).map((order) => ({ ...order }))
+          : [],
+        deviceSessions: this.normalizeDeviceSessions(candidate.deviceSessions, initial.deviceSessions),
         rewardClaims: candidate.rewardClaims && typeof candidate.rewardClaims === "object" ? clone(candidate.rewardClaims) : {},
         preferences: {
           searchQuery: String(candidate.preferences?.searchQuery || ""),
@@ -393,6 +398,57 @@
       return normalized;
     }
 
+    normalizePremiumAccess(value, legacyUnlocks, fallback) {
+      const normalized = {};
+      this.config.users.forEach((user) => {
+        const candidate = value?.[user.id] || {};
+        const monthlyUntil = dateValue(candidate.monthlyUntil) !== null ? candidate.monthlyUntil : null;
+        const books = {};
+        if (candidate.books && typeof candidate.books === "object") {
+          Object.entries(candidate.books).forEach(([key, record]) => {
+            if (!key || !record || typeof record !== "object") return;
+            books[key] = { ...record, lifetime: true };
+          });
+        }
+        // Earlier local builds used voucher unlocks. Preserve them as lifetime
+        // single-title access so no reader loses a book they already opened.
+        Object.keys(legacyUnlocks?.[user.id] || {}).forEach((key) => {
+          if (!books[key]) {
+            books[key] = {
+              lifetime: true,
+              purchasedAt: legacyUnlocks[user.id][key]?.unlockedAt || null,
+              migrated: true
+            };
+          }
+        });
+        normalized[user.id] = {
+          monthlyUntil,
+          lifetimeAll: Boolean(candidate.lifetimeAll),
+          books
+        };
+      });
+      return normalized;
+    }
+
+    normalizeDeviceSessions(value, fallback) {
+      const normalized = {};
+      this.config.users.forEach((user) => {
+        const list = Array.isArray(value?.[user.id]) ? value[user.id] : fallback?.[user.id] || [];
+        normalized[user.id] = list
+          .filter((session) => session && session.deviceId)
+          .map((session) => ({
+            id: String(session.id || createId("device")),
+            deviceId: String(session.deviceId),
+            label: String(session.label || "Unknown device"),
+            createdAt: session.createdAt || null,
+            lastSeenAt: session.lastSeenAt || null,
+            active: session.active !== false,
+            revokedAt: session.revokedAt || null
+          }));
+      });
+      return normalized;
+    }
+
     migrateLegacy(legacy) {
       const state = this.config.createInitialState();
       state.preferences.searchQuery = String(legacy?.preferences?.searchQuery || "");
@@ -487,9 +543,110 @@
     rememberBooks(books) {
       if (!books.length) return;
       this.commit((state) => {
-        books.filter((book) => book.source === "gutendex").forEach((book) => {
+        books.filter((book) => ["gutendex", "hindi"].includes(book.source)).forEach((book) => {
           state.catalogRecords[book.key] = clone(book);
         });
+      });
+    }
+
+    /**
+     * Register a server account in the local user list and make sure every
+     * per-user ledger exists. Server accounts are cached by backend.js so this
+     * also works after a reload.
+     */
+    ensureUser(user) {
+      if (!user?.id) return null;
+      let existing = this.config.users.find((candidate) => candidate.id === user.id);
+      if (!existing) {
+        existing = {
+          id: String(user.id),
+          name: String(user.name || "ScholarScroll reader"),
+          email: String(user.email || ""),
+          role: user.role === "admin" ? "admin" : "student",
+          initials: String(user.initials || "").slice(0, 2).toUpperCase() || "SS",
+          server: true
+        };
+        this.config.users.push(existing);
+      } else {
+        existing.name = user.name || existing.name;
+        existing.email = user.email || existing.email;
+        existing.role = user.role === "admin" ? "admin" : existing.role;
+        existing.initials = user.initials || existing.initials;
+        if (user.server) existing.server = true;
+      }
+      this.commit((state) => {
+        state.readingActivity[user.id] ||= {};
+        state.readingDays[user.id] ||= [];
+        state.savedBooks[user.id] ||= [];
+        state.savedBookRecords[user.id] ||= {};
+        state.premiumAccess[user.id] ||= { monthlyUntil: null, lifetimeAll: false, books: {} };
+        state.deviceSessions[user.id] ||= [];
+      });
+      return existing;
+    }
+
+    /**
+     * Mirror authoritative server data into the local state that the existing
+     * UI already renders. Only keys present in the payload are replaced.
+     */
+    applyServerSnapshot(payload) {
+      if (!payload?.user?.id) return;
+      const user = this.ensureUser(payload.user);
+      if (!user) return;
+      this.commit((state) => {
+        if (payload.entitlements) {
+          state.premiumAccess[user.id] = {
+            monthlyUntil: payload.entitlements.monthlyUntil || null,
+            lifetimeAll: Boolean(payload.entitlements.lifetimeAll),
+            books: clone(payload.entitlements.books || {})
+          };
+        }
+        if (Array.isArray(payload.devices)) {
+          state.deviceSessions[user.id] = payload.devices
+            .filter((session) => session && session.deviceId)
+            .map((session) => ({
+              id: String(session.id || createId("device")),
+              deviceId: String(session.deviceId),
+              label: String(session.label || "Unknown device"),
+              createdAt: session.createdAt || null,
+              lastSeenAt: session.lastSeenAt || null,
+              active: session.active !== false,
+              revokedAt: session.revokedAt || null
+            }));
+        }
+        if (Array.isArray(payload.vouchers)) {
+          payload.vouchers.forEach((voucher) => {
+            const certificateId = voucher.certificateId;
+            if (!certificateId) return;
+            const achievement = state.achievements.find(
+              (item) => (item.certificateId || item.id) === certificateId
+            );
+            if (achievement) {
+              achievement.discountPercent = voucher.discountPercent;
+              achievement.rewardCode = voucher.code;
+              achievement.rewardExpiresAt = voucher.expiresAt;
+            }
+            state.rewardClaims[certificateId] = {
+              certificateId,
+              userId: voucher.userId || user.id,
+              code: voucher.code,
+              discountPercent: voucher.discountPercent,
+              claimedAt: voucher.issuedAt || null,
+              redeemedAt: voucher.redeemedAt || null,
+              planId: voucher.planId || null,
+              bookKey: voucher.bookKey || null,
+              orderId: voucher.orderId || null
+            };
+          });
+        }
+        if (Array.isArray(payload.orders)) {
+          payload.orders.forEach((order) => {
+            if (!order?.id) return;
+            const existing = state.orders.find((item) => item.id === order.id);
+            if (existing) Object.assign(existing, order);
+            else state.orders.unshift(order);
+          });
+        }
       });
     }
 
@@ -822,6 +979,8 @@
         if (!existing && qualifying.length >= this.config.AVID_READER_TARGET) {
           const certificateId = createId("certificate");
           const evidenceBookKeys = qualifying.map(([key]) => key);
+          const percents = this.config.VOUCHER_PERCENTS;
+          const discountPercent = percents[Math.floor(Math.random() * percents.length)];
           const record = {
             id: certificateId,
             certificateId,
@@ -830,7 +989,8 @@
             unlockedAt: now,
             evidenceBookKeys,
             rewardCode: rewardCodeFor(certificateId),
-            rewardExpiresAt: new Date(Date.now() + (this.config.CERTIFICATE_REWARD_DAYS * this.config.DAY_IN_MS)).toISOString(),
+            rewardExpiresAt: new Date(Date.now() + (this.config.VOUCHER_VALID_DAYS * this.config.DAY_IN_MS)).toISOString(),
+            discountPercent,
             bookSnapshots: evidenceBookKeys
               .map((key) => this.getBookFromState(state, key) || state.readingActivity[userId][key]?.book)
               .filter(Boolean)
@@ -858,7 +1018,8 @@
           ...stored,
           certificateId: stored.certificateId || stored.id,
           rewardCode: stored.rewardCode || rewardCodeFor(stored.id),
-          rewardExpiresAt: stored.rewardExpiresAt || new Date((dateValue(stored.unlockedAt) || Date.now()) + (this.config.CERTIFICATE_REWARD_DAYS * this.config.DAY_IN_MS)).toISOString(),
+          rewardExpiresAt: stored.rewardExpiresAt || new Date((dateValue(stored.unlockedAt) || Date.now()) + (this.config.VOUCHER_VALID_DAYS * this.config.DAY_IN_MS)).toISOString(),
+          discountPercent: stored.discountPercent || this.discountForCertificate(stored.certificateId || stored.id),
           bookSnapshots: stored.bookSnapshots || (stored.evidenceBookKeys || [])
             .map((key) => this.getBook(key))
             .filter(Boolean)
@@ -872,22 +1033,73 @@
       return this.config.PREMIUM_BOOKS.find((book) => book.key === bookKey) || null;
     }
 
-    premiumUnlocked(userId, bookKey) {
-      return Boolean(this.state.premiumUnlocks?.[userId]?.[bookKey]);
+    premiumAccessFor(userId = this.currentUser?.id) {
+      const stored = userId ? this.state.premiumAccess?.[userId] : null;
+      return stored && typeof stored === "object"
+        ? stored
+        : { monthlyUntil: null, lifetimeAll: false, books: {} };
     }
 
-    premiumUnlockRecord(userId, bookKey) {
-      return this.state.premiumUnlocks?.[userId]?.[bookKey] || null;
+    premiumAccessStatus(userId = this.currentUser?.id) {
+      const access = this.premiumAccessFor(userId);
+      const monthlyUntilValue = dateValue(access.monthlyUntil);
+      const monthlyActive = monthlyUntilValue !== null && monthlyUntilValue > Date.now();
+      const bookKeys = Object.keys(access.books || {});
+      const active = Boolean(access.lifetimeAll) || monthlyActive || bookKeys.length > 0;
+      let label = "No premium access yet";
+      if (access.lifetimeAll) label = "Lifetime all-access";
+      else if (monthlyActive) label = `Monthly access · until ${formatDate(access.monthlyUntil)}`;
+      else if (bookKeys.length) label = `${bookKeys.length} lifetime ${pluralize(bookKeys.length, "book")}`;
+      return {
+        active,
+        lifetimeAll: Boolean(access.lifetimeAll),
+        monthlyActive,
+        monthlyUntil: monthlyActive ? access.monthlyUntil : null,
+        bookKeys,
+        label
+      };
+    }
+
+    hasPremiumAccess(bookKey, userId = this.currentUser?.id) {
+      if (!userId) return false;
+      const book = this.premiumBook(bookKey) || this.getBook(bookKey);
+      if (!book) return false;
+      if (!book.premium) return true;
+      const access = this.premiumAccessFor(userId);
+      if (access.lifetimeAll) return true;
+      const monthlyUntilValue = dateValue(access.monthlyUntil);
+      if (monthlyUntilValue !== null && monthlyUntilValue > Date.now()) return true;
+      return Boolean(access.books?.[bookKey]);
+    }
+
+    /* Compatibility aliases used by older UI code. */
+    premiumUnlocked(userId, bookKey) {
+      return this.hasPremiumAccess(bookKey, userId);
     }
 
     premiumUnlockCount(userId = this.currentUser?.id) {
-      return Object.keys(this.state.premiumUnlocks?.[userId] || {}).length;
+      return Object.keys(this.premiumAccessFor(userId).books || {}).length;
+    }
+
+    planById(planId) {
+      return this.config.PREMIUM_PLANS.find((plan) => plan.id === planId) || null;
+    }
+
+    /** Deterministic fallback so certificates created before discounts existed
+        still receive one of the supported percentages. */
+    discountForCertificate(certificateId) {
+      const percents = this.config.VOUCHER_PERCENTS;
+      let hash = 0;
+      const source = String(certificateId || "");
+      for (let index = 0; index < source.length; index += 1) {
+        hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+      }
+      return percents[Math.abs(hash) % percents.length];
     }
 
     /**
-     * Resolve the voucher attached to a certificate. The certificate's own
-     * reward code is authoritative; legacy PREM-* claims are still accepted so
-     * an earlier local demo does not strand a reader.
+     * Resolve the discount voucher attached to a certificate. The voucher is
+     * bound to the recipient's account and registered email address.
      */
     voucherForCertificate(achievement) {
       if (!achievement) return null;
@@ -896,11 +1108,17 @@
       const code = claim?.code || achievement.rewardCode || rewardCodeFor(certificateId);
       const expiresAt = achievement.rewardExpiresAt || claim?.rewardExpiresAt || null;
       const redeemedAt = claim?.redeemedAt || null;
+      const owner = this.config.users.find((user) => user.id === achievement.userId) || null;
+      const percent = Number(achievement.discountPercent || claim?.discountPercent)
+        || this.discountForCertificate(certificateId);
       return {
         certificateId,
         code,
         expiresAt,
         redeemedAt,
+        discountPercent: percent,
+        email: owner?.email || "",
+        planId: claim?.planId || null,
         bookKey: claim?.bookKey || null,
         expired: dateValue(expiresAt) !== null && dateValue(expiresAt) < Date.now(),
         redeemed: Boolean(redeemedAt)
@@ -927,54 +1145,225 @@
       return owned.find((achievement) => (achievement.certificateId || achievement.id) === legacyClaim.certificateId) || null;
     }
 
-    redeemVoucher(code, bookKey, userId = this.currentUser?.id) {
-      if (!userId) return { ok: false, error: "Sign in to redeem a voucher." };
-      const book = this.premiumBook(bookKey);
-      if (!book) return { ok: false, error: "Choose a premium book to unlock." };
-      if (this.premiumUnlocked(userId, bookKey)) {
-        return { ok: false, error: "You have already unlocked this premium book." };
-      }
+    /**
+     * Validate a voucher for checkout. Vouchers are single-use, expire after
+     * one week and only work for the account and email they were issued to.
+     */
+    validateVoucherForCheckout(code, userId = this.currentUser?.id) {
+      if (!userId) return { ok: false, error: "Sign in to use a voucher." };
       const normalized = String(code || "").trim().toUpperCase();
-      if (!normalized) return { ok: false, error: "Please enter your Voucher Code:" };
+      if (!normalized) return { ok: false, error: "Enter a voucher code first." };
+      const user = this.currentUser;
       const achievement = this.findCertificateByVoucher(normalized, userId);
       if (!achievement) {
-        return { ok: false, error: "That voucher code was not found for this account." };
+        return { ok: false, error: "That voucher code is not registered to this account." };
       }
       const voucher = this.voucherForCertificate(achievement);
-      if (voucher.redeemed) {
-        const usedBook = this.premiumBook(voucher.bookKey);
-        return {
-          ok: false,
-          error: usedBook
-            ? `This voucher has already been used to unlock “${usedBook.title}”.`
-            : "This voucher has already been used."
-        };
+      if (voucher.redeemed) return { ok: false, error: "This voucher has already been used." };
+      if (voucher.expired) return { ok: false, error: `This voucher expired on ${formatDate(voucher.expiresAt)}.` };
+      if (voucher.email && user && voucher.email.toLowerCase() !== user.email.toLowerCase()) {
+        return { ok: false, error: "This voucher belongs to a different registered email address." };
       }
-      if (voucher.expired) {
-        return { ok: false, error: `This voucher expired on ${formatDate(voucher.expiresAt)}.` };
+      return { ok: true, voucher, percent: voucher.discountPercent };
+    }
+
+    /** Build an order quote without mutating state. */
+    quotePlan(planId, options = {}, userId = this.currentUser?.id) {
+      if (!userId) return { ok: false, error: "Sign in to buy premium access." };
+      const plan = this.planById(planId);
+      if (!plan) return { ok: false, error: "Choose a valid premium plan." };
+      const access = this.premiumAccessFor(userId);
+      let book = null;
+      if (plan.scope === "book") {
+        book = this.premiumBook(options.bookKey);
+        if (!book || !book.reader) return { ok: false, error: "Choose a readable premium book first." };
+        if (access.lifetimeAll || access.books?.[book.key]) {
+          return { ok: false, error: "You already have lifetime access to this book." };
+        }
+      } else if (access.lifetimeAll) {
+        return { ok: false, error: "You already have lifetime all-access." };
       }
+      let percent = 0;
+      let voucher = null;
+      const code = String(options.voucherCode || "").trim();
+      if (code) {
+        const validation = this.validateVoucherForCheckout(code, userId);
+        if (!validation.ok) return validation;
+        percent = validation.percent;
+        voucher = validation.voucher;
+      }
+      const listPrice = plan.price;
+      const total = Math.max(0, Math.round(listPrice * (100 - percent) / 100));
+      return { ok: true, plan, book, listPrice, percent, discount: listPrice - total, total, voucher };
+    }
+
+    purchasePlan(planId, options = {}, userId = this.currentUser?.id) {
+      const quote = this.quotePlan(planId, options, userId);
+      if (!quote.ok) return quote;
       const now = new Date().toISOString();
+      const orderId = createId("order");
       this.commit((state) => {
-        state.premiumUnlocks[userId] ||= {};
-        state.premiumUnlocks[userId][bookKey] = {
-          bookKey,
-          certificateId: voucher.certificateId,
-          voucherCode: voucher.code,
-          unlockedAt: now
-        };
-        const existing = state.rewardClaims[voucher.certificateId] || {};
-        state.rewardClaims[voucher.certificateId] = {
-          ...existing,
-          certificateId: voucher.certificateId,
+        state.premiumAccess[userId] ||= { monthlyUntil: null, lifetimeAll: false, books: {} };
+        const access = state.premiumAccess[userId];
+        access.books ||= {};
+        if (quote.plan.id === "monthly") {
+          const base = Math.max(Date.now(), dateValue(access.monthlyUntil) || 0);
+          access.monthlyUntil = new Date(base + quote.plan.durationDays * this.config.DAY_IN_MS).toISOString();
+        } else if (quote.plan.id === "lifetime") {
+          access.lifetimeAll = true;
+        } else if (quote.book) {
+          access.books[quote.book.key] = {
+            lifetime: true,
+            plan: "single",
+            purchasedAt: now,
+            pricePaid: quote.total
+          };
+          if (quote.book.source === "gutendex") state.catalogRecords[quote.book.key] = clone(quote.book);
+        }
+        state.orders.unshift({
+          id: orderId,
           userId,
-          code: voucher.code,
-          claimedAt: existing.claimedAt || now,
-          redeemedAt: now,
-          bookKey
-        };
-        state.catalogRecords[book.key] = clone(book);
+          planId: quote.plan.id,
+          bookKey: quote.book?.key || null,
+          listPrice: quote.listPrice,
+          discountPercent: quote.percent,
+          amount: quote.total,
+          voucherCode: quote.voucher?.code || null,
+          status: "demo-paid",
+          createdAt: now
+        });
+        if (quote.voucher) {
+          const certificateId = quote.voucher.certificateId;
+          const existing = state.rewardClaims[certificateId] || {};
+          state.rewardClaims[certificateId] = {
+            ...existing,
+            certificateId,
+            userId,
+            code: quote.voucher.code,
+            discountPercent: quote.voucher.discountPercent,
+            claimedAt: existing.claimedAt || now,
+            redeemedAt: now,
+            planId: quote.plan.id,
+            bookKey: quote.book?.key || null,
+            orderId
+          };
+        }
       });
-      return { ok: true, book, voucher };
+      return { ok: true, ...quote, orderId };
+    }
+
+    /* ---- Local device sessions (two-device limit) ---------------------- */
+
+    deviceId() {
+      if (this.localDeviceId) return this.localDeviceId;
+      try {
+        let id = window.localStorage.getItem("scholarscroll-device-id");
+        if (!id) {
+          id = createId("device-client");
+          window.localStorage.setItem("scholarscroll-device-id", id);
+        }
+        this.localDeviceId = id;
+      } catch {
+        this.localDeviceId = this.localDeviceId || createId("device-client");
+      }
+      return this.localDeviceId;
+    }
+
+    deviceLabel() {
+      const ua = navigator.userAgent || "";
+      const browser = /Edg\//.test(ua) ? "Edge"
+        : /OPR\//.test(ua) ? "Opera"
+          : /Firefox\//.test(ua) ? "Firefox"
+            : /Chrome\//.test(ua) ? "Chrome"
+              : /Safari\//.test(ua) ? "Safari"
+                : "Browser";
+      const platform = /Android/.test(ua) ? "Android"
+        : /iPhone|iPad|iPod/.test(ua) ? "iOS"
+          : /Windows/.test(ua) ? "Windows"
+            : /Mac OS X/.test(ua) ? "macOS"
+              : /Linux/.test(ua) ? "Linux"
+                : "device";
+      return `${browser} on ${platform}`;
+    }
+
+    /**
+     * Register this browser as a session for the account. The third active
+     * device evicts the least recently used one.
+     */
+    registerDeviceSession(userId = this.currentUser?.id) {
+      if (!userId) return { deviceId: null, revoked: [] };
+      const deviceId = this.deviceId();
+      const label = this.deviceLabel();
+      const now = new Date().toISOString();
+      const revoked = [];
+      this.commit((state) => {
+        const list = state.deviceSessions[userId] ||= [];
+        let current = list.find((session) => session.deviceId === deviceId);
+        if (!current) {
+          current = { id: createId("device"), deviceId, label, createdAt: now };
+          list.unshift(current);
+        }
+        current.label = label;
+        current.lastSeenAt = now;
+        current.active = true;
+        current.revokedAt = null;
+        const others = list
+          .filter((session) => session !== current)
+          .sort((first, second) => dateValue(second.lastSeenAt) - dateValue(first.lastSeenAt));
+        const ordered = [current, ...others];
+        while (ordered.length > this.config.MAX_DEVICES) {
+          const removed = ordered.pop();
+          removed.active = false;
+          removed.revokedAt = now;
+          revoked.push({ ...removed });
+        }
+        state.deviceSessions[userId] = ordered;
+      });
+      return { deviceId, revoked };
+    }
+
+    activeDeviceSessions(userId = this.currentUser?.id) {
+      return (this.state.deviceSessions?.[userId] || []).filter((session) => session.active);
+    }
+
+    currentDeviceSession(userId = this.currentUser?.id) {
+      if (!userId) return null;
+      return (this.state.deviceSessions?.[userId] || [])
+        .find((session) => session.deviceId === this.deviceId()) || null;
+    }
+
+    deviceSessionIsActive(userId = this.currentUser?.id) {
+      const session = this.currentDeviceSession(userId);
+      return Boolean(session && session.active);
+    }
+
+    revokeDeviceSession(sessionId, userId = this.currentUser?.id) {
+      const current = this.currentDeviceSession(userId);
+      if (!userId || current?.id === sessionId) {
+        return { ok: false, error: "You cannot disconnect the device you are using." };
+      }
+      let revoked = false;
+      this.commit((state) => {
+        const session = (state.deviceSessions[userId] || []).find((item) => item.id === sessionId);
+        if (session && session.active) {
+          session.active = false;
+          session.revokedAt = new Date().toISOString();
+          revoked = true;
+        }
+      });
+      return revoked ? { ok: true } : { ok: false, error: "That device session was already inactive." };
+    }
+
+    deactivateCurrentDevice(userId = this.currentUser?.id) {
+      if (!userId) return;
+      const deviceId = this.deviceId();
+      this.commit((state) => {
+        const session = (state.deviceSessions[userId] || []).find((item) => item.deviceId === deviceId);
+        if (session) {
+          session.active = false;
+          session.revokedAt = new Date().toISOString();
+        }
+      });
     }
   }
 
@@ -1116,6 +1505,14 @@
       this.store = new LibraryStateStore(Config);
       this.auth = new AuthenticationService(this.store);
       this.api = new ApiModule.GutendexClient();
+      this.backend = BackendModule ? new BackendModule.BackendClient() : null;
+      this.backendSyncAt = 0;
+      this.backendSyncTimer = null;
+      this.hindiCategory = "all";
+      // null = not checked yet; true = bundled PDFs are deployed on this
+      // origin; false = they were excluded (Vercel) and need the backend.
+      this.premiumAssetsReady = null;
+      this.premiumAssetCheck = null;
       this.cache = new ReaderModule.DocumentCacheService();
       this.router = new HashRouter((route) => this.renderRoute(route));
       this.modal = new ModalController(document.querySelector("#app-dialog"), document.querySelector("#dialog-content"));
@@ -1123,7 +1520,7 @@
       this.reader = null;
       this.readerReturnRoute = "catalog";
       this.pendingReadKey = null;
-      this.pendingVoucherBookKey = null;
+      this.pendingCheckout = null;
       this.searchController = null;
       this.debouncedApiSearch = debounce((query) => this.runSearch(query), 300);
       this.autocompleteItems = [];
@@ -1131,6 +1528,10 @@
       this.searchHasFocus = false;
       this.bookIndex = new Map();
       this.adminStatus = "";
+      this.catalogCacheKey = "scholarscroll-catalog-cache-v1";
+      this.catalogRetryTimer = null;
+      this.catalogRetryCount = 0;
+      this.catalogFallbackNotified = false;
       this.catalog = {
         popular: [],
         newest: [],
@@ -1148,7 +1549,10 @@
         loadingMore: false,
         popularError: null,
         newestError: null,
-        searchError: null
+        searchError: null,
+        loadingShelves: false,
+        offlineNotice: "",
+        cachedAt: null
       };
 
       this.elements = {
@@ -1159,6 +1563,7 @@
         authControl: document.querySelector("#auth-control"),
         storageDot: document.querySelector("#storage-dot"),
         apiStatusDot: document.querySelector("#api-status-dot"),
+        backendStatusDot: document.querySelector("#backend-status-dot"),
         networkBanner: document.querySelector("#network-banner"),
         footerYear: document.querySelector("#footer-year")
       };
@@ -1166,7 +1571,8 @@
       this.routes = {
         store: { title: "ScholarScroll · Live Public Library", description: "Search 79,000+ public-domain books, read securely in the browser, and keep notes and progress.", public: true, sidebar: null, header: "store", render: () => this.renderStorefront() },
         catalog: { title: "Live Catalog · ScholarScroll", description: "Browse and search the live Project Gutenberg catalog through Gutendex.", public: true, sidebar: "catalog", header: "catalog", render: () => this.renderCatalog() },
-        premium: { title: "Premium Books · ScholarScroll", description: "A curated members' shelf of public-domain classics and supplied reader editions, open to every member.", public: true, sidebar: "premium", header: "premium", render: () => this.renderPremium() },
+        premium: { title: "Premium Books · ScholarScroll", description: "A curated members' shelf of public-domain classics and supplied reader editions with monthly, single-book and lifetime access.", public: true, sidebar: "premium", header: "premium", render: () => this.renderPremium() },
+        hindi: { title: "हिंदी पुस्तकालय · ScholarScroll", description: "हिंदी साहित्य, भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर और प्रेमचंद का मुफ़्त संग्रह।", public: true, sidebar: "hindi", header: "hindi", render: () => this.renderHindi() },
         dashboard: { title: "My Library · ScholarScroll", description: "Your reading history, streak badges, certificates and recommendations.", auth: true, role: "student", sidebar: "dashboard", header: "dashboard", render: () => this.renderDashboard() },
         bookmarks: { title: "Saved Books · ScholarScroll", description: "Your personal saved-book collection.", auth: true, sidebar: "bookmarks", header: null, render: () => this.renderBookmarks() },
         settings: { title: "Settings · ScholarScroll", description: "Profile, reader preferences and local data controls.", auth: true, sidebar: "settings", header: null, render: () => this.renderSettings() },
@@ -1180,8 +1586,8 @@
 
     init() {
       this.setupAutocomplete();
-      this.indexBooks(Config.PREMIUM_BOOKS);
-      this.store.rememberBooks(Config.PREMIUM_BOOKS);
+      this.indexBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
+      this.store.rememberBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
       this.elements.search.value = this.store.state.preferences.searchQuery;
       if (this.elements.footerYear) this.elements.footerYear.textContent = String(new Date().getFullYear());
       document.addEventListener("click", (event) => this.handleClick(event));
@@ -1191,27 +1597,256 @@
       document.addEventListener("keydown", (event) => this.handleKeyboard(event));
       document.addEventListener("error", (event) => this.handleImageError(event), true);
       window.addEventListener("storage", (event) => this.handleStorageChange(event));
-      window.addEventListener("online", () => this.updateNetworkState(true));
+      window.addEventListener("online", () => {
+        this.updateNetworkState(true);
+        this.retryCatalogIfNeeded();
+        this.checkBackend(true);
+      });
+      window.addEventListener("scholarscroll:backend", (event) => {
+        this.updateBackendState(Boolean(event.detail?.available));
+      });
       window.addEventListener("offline", () => this.updateNetworkState(false));
       window.addEventListener("pagehide", () => this.store.flush());
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") this.store.flush();
+        if (document.visibilityState === "hidden") {
+          this.store.flush();
+          this.setShield(true);
+          return;
+        }
+        this.setShield(false);
+        this.ensureDeviceSession();
+        this.retryCatalogIfNeeded();
       });
+      window.addEventListener("focus", () => {
+        this.setShield(false);
+        this.ensureDeviceSession();
+      });
+      window.addEventListener("blur", () => this.setShield(true));
       window.addEventListener("unhandledrejection", (event) => {
         console.error("Unhandled ScholarScroll promise rejection.", event.reason);
       });
 
       this.renderChrome();
       this.updateNetworkState(navigator.onLine);
+      this.initContentProtection();
+      // Paint books immediately: saved results when available, otherwise the
+      // bundled starter shelf. Live results replace them as soon as they land.
+      if (!this.loadCatalogCache()) this.applyStarterShelf();
       const user = this.store.currentUser;
       this.router.start(window.location.hash ? this.router.current() : user ? (user.role === "admin" ? "admin" : "dashboard") : "store");
       if (user) {
+        this.ensureDeviceSession();
         const badges = this.store.syncBadges();
         if (badges.length) this.announceBadges(badges);
         this.hydrateUserRecords();
       }
       this.loadLiveShelves();
+      this.initBackend();
+      this.detectPremiumAssets();
       this.registerServiceWorker();
+    }
+
+    /* ---- Optional Python/SQLite backend ------------------------------ */
+
+    async initBackend() {
+      if (!this.backend) {
+        this.updateBackendState(false);
+        return;
+      }
+      const health = await this.backend.probe();
+      this.updateBackendState(Boolean(health));
+      if (!health) return;
+      if (!this.backend.hasToken()) return;
+      try {
+        const payload = await this.backend.me();
+        const serverUser = payload?.user;
+        if (!serverUser) return;
+        if (this.store.currentUser && this.store.currentUser.id !== serverUser.id) {
+          // A token from a different account must not silently replace a
+          // deliberate local session.
+          this.backend.setToken("");
+          return;
+        }
+        if (!this.store.currentUser) {
+          this.store.ensureUser(serverUser);
+          this.store.setSession(serverUser.id);
+        }
+        this.applyServerSnapshot(payload);
+        this.renderChrome();
+        this.refreshView();
+        this.scheduleBackendSync(true);
+        this.syncCertificates();
+      } catch (error) {
+        if (error?.status === 401) this.backend.setToken("");
+        console.warn("ScholarScroll backend session could not be restored.", error);
+      }
+    }
+
+    async checkBackend(force = false) {
+      if (!this.backend) return null;
+      const health = await this.backend.probe(force);
+      this.updateBackendState(Boolean(health));
+      if (force && this.router.current() === "settings") this.refreshView();
+      return health;
+    }
+
+    openPremiumBackendHelp() {
+      this.toast.show(
+        "PDF reader editions are served by the Python backend. Open Settings → Backend and connect a server, then reopen the premium shelf.",
+        "warning",
+        7500
+      );
+      if (this.store.currentUser) this.router.navigate("settings");
+      else this.openLogin();
+    }
+
+    updateBackendState(available) {
+      const active = Boolean(available && this.backend?.available);
+      this.hindiSource = active ? "server" : "direct";
+      if (this.elements.backendStatusDot) {
+        this.elements.backendStatusDot.classList.toggle("is-online", active);
+        this.elements.backendStatusDot.classList.toggle("is-offline", !active);
+        this.elements.backendStatusDot.dataset.tooltip = active ? "Local server connected" : "Local demo mode";
+        this.elements.backendStatusDot.setAttribute("aria-label", active ? "Local server connected" : "Local demo mode");
+      }
+      document.body.classList.toggle("backend-online", active);
+      // Premium PDF availability depends on whether a backend is connected.
+      if (this.router.current() === "premium") this.refreshView();
+    }
+
+    backendLabel() {
+      return this.backend?.available ? "Local server" : "Local demo mode";
+    }
+
+    /**
+     * Premium reader PDFs live in assets/premium/. They are intentionally not
+     * part of the static Vercel deployment, so the front end checks for a small
+     * manifest on its own origin. When the manifest is missing the cards point
+     * readers at the backend instead of opening a guaranteed 404.
+     */
+    async detectPremiumAssets() {
+      if (this.premiumAssetCheck) return this.premiumAssetCheck;
+      this.premiumAssetCheck = (async () => {
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), 3000);
+        try {
+          const response = await fetch("assets/premium/manifest.json", {
+            cache: "no-store",
+            signal: controller.signal
+          });
+          // The static Vercel deployment rewrites this path to a small
+          // {"available": false} file because the PDF folder is excluded.
+          const manifest = await response.json().catch(() => ({}));
+          this.premiumAssetsReady = Boolean(
+            response.ok && manifest.available !== false && (!Array.isArray(manifest.files) || manifest.files.length > 0)
+          );
+        } catch {
+          this.premiumAssetsReady = false;
+        } finally {
+          window.clearTimeout(timer);
+        }
+        if (this.router.current() === "premium") this.refreshView();
+        return this.premiumAssetsReady;
+      })();
+      return this.premiumAssetCheck;
+    }
+
+    premiumEditionNeedsBackend(book) {
+      if (!book?.premium || book.reader?.engine !== "pdf") return false;
+      if (!/^assets\/premium\//.test(String(book.reader.sourceUrl || ""))) return false;
+      if (this.backend?.available || this.premiumAssetsReady) return false;
+      // While the manifest check is still running, keep the optimistic state
+      // so local static users never see a false "backend required" flash.
+      return this.premiumAssetsReady === false;
+    }
+
+    prepareReaderBook(book) {
+      if (!book?.reader) return book;
+      let prepared = book;
+      if (book.hindi && this.backend?.available) {
+        const textUrl = this.backend.hindiTextUrl(book.key);
+        if (textUrl) prepared = { ...prepared, reader: { ...prepared.reader, sourceUrl: textUrl } };
+      }
+      // A separately hosted front end cannot resolve repository-relative PDFs;
+      // route them through the backend origin when one is connected. Custom
+      // uploads have no sourceUrl and read from IndexedDB, so leave them alone.
+      const pdfSource = String(prepared.reader.sourceUrl || "");
+      if (
+        prepared.reader.engine === "pdf" &&
+        pdfSource &&
+        this.backend?.available &&
+        !/^(https?:|blob:|data:)/i.test(pdfSource)
+      ) {
+        const asset = this.backend.assetUrl(pdfSource);
+        if (asset) prepared = { ...prepared, reader: { ...prepared.reader, sourceUrl: asset } };
+      }
+      return prepared;
+    }
+
+    /* Thin app-level wrappers around the store's server-mirroring helpers. */
+    ensureUser(user) {
+      return this.store.ensureUser(user);
+    }
+
+    applyServerSnapshot(payload) {
+      return this.store.applyServerSnapshot(payload);
+    }
+
+    async syncCertificates() {
+      const user = this.store.currentUser;
+      if (!user || !this.backend?.available || !this.backend.hasToken()) return;
+      const certificates = (this.store.state.achievements || [])
+        .filter((item) => item.userId === user.id && item.type === "avid-reader")
+        .map((item) => item.certificateId || item.id)
+        .filter(Boolean);
+      for (const certificateId of certificates) {
+        try {
+          const result = await this.backend.issueVoucher(certificateId);
+          if (result?.vouchers) this.applyServerSnapshot({ user, vouchers: result.vouchers });
+        } catch (error) {
+          if (error?.status === 401) return;
+          console.warn("Certificate voucher could not be synced.", error);
+        }
+      }
+    }
+
+    async syncCertificate(certificate) {
+      if (!certificate || !this.backend?.available || !this.backend.hasToken()) return;
+      const certificateId = certificate.certificateId || certificate.id;
+      if (!certificateId) return;
+      try {
+        const result = await this.backend.issueVoucher(certificateId);
+        if (result?.vouchers) this.applyServerSnapshot({ user: this.store.currentUser, vouchers: result.vouchers });
+        if (["settings", "premium", "dashboard"].includes(this.router.current())) this.refreshView();
+      } catch (error) {
+        if (error?.status !== 401) console.warn("Certificate voucher could not be issued.", error);
+      }
+    }
+
+    scheduleBackendSync(force = false) {
+      if (!this.backend?.available || !this.backend.hasToken() || !this.store.currentUser) return;
+      const now = Date.now();
+      if (!force && now - this.backendSyncAt < 30000) return;
+      this.backendSyncAt = now;
+      const user = this.store.currentUser;
+      this.backend.heartbeat().then((payload) => {
+        this.applyServerSnapshot({ ...payload, user });
+        if (["settings", "premium", "dashboard"].includes(this.router.current())) this.refreshView();
+      }).catch((error) => {
+        if (error?.status !== 401) return;
+        this.backend.setToken("");
+        this.reader?.destroy();
+        this.reader = null;
+        document.body.classList.remove("reader-mode");
+        this.auth.signOut();
+        this.renderChrome();
+        this.router.navigate("store");
+        this.toast.show(
+          `This device was disconnected because ${user.name.split(" ")[0]}'s account is active on ${Config.MAX_DEVICES} other devices.`,
+          "error",
+          9000
+        );
+      });
     }
 
     registerServiceWorker() {
@@ -1221,6 +1856,59 @@
           console.warn("ScholarScroll offline worker could not register.", error);
         });
       });
+    }
+
+    /**
+     * Best-effort content protection. A static site cannot stop an operating
+     * system screenshot tool, but it can black the reading surface on window
+     * blur, block the browser print dialog, and stop copy/cut from the reader.
+     */
+    initContentProtection() {
+      this.shield = document.querySelector("#content-shield");
+      this.shield?.addEventListener("click", () => this.setShield(false));
+
+      document.addEventListener("keydown", (event) => {
+        const key = String(event.key || "").toLowerCase();
+        const captureKey = event.key === "PrintScreen" || event.code === "PrintScreen";
+        const snippingCombo = event.metaKey && event.shiftKey && key === "s";
+        const printCombo = (event.ctrlKey || event.metaKey) && key === "p";
+        const saveCombo = (event.ctrlKey || event.metaKey) && key === "s";
+        if (!captureKey && !snippingCombo && !printCombo && !saveCombo) return;
+        event.preventDefault();
+        this.setShield(true);
+        this.toast.show(
+          "Screenshot shortcuts, printing and saving are restricted. Screen capture cannot be fully blocked by a website.",
+          "warning",
+          5200
+        );
+        window.setTimeout(() => this.setShield(false), 1500);
+      }, true);
+
+      const blockClipboard = (event) => {
+        if (!document.body.classList.contains("reader-mode")) return;
+        event.preventDefault();
+        if (event.clipboardData) event.clipboardData.setData("text/plain", "");
+        this.toast.show("Copying book text is disabled to protect the library.", "warning", 3600);
+      };
+      document.addEventListener("copy", blockClipboard);
+      document.addEventListener("cut", blockClipboard);
+
+      document.addEventListener("contextmenu", (event) => {
+        if (!document.body.classList.contains("reader-mode")) return;
+        event.preventDefault();
+        this.toast.show("The reader context menu is disabled.", "info", 2600);
+      });
+
+      window.addEventListener("beforeprint", () => {
+        if (document.body.classList.contains("reader-mode")) this.setShield(true);
+      });
+      window.addEventListener("afterprint", () => this.setShield(false));
+    }
+
+    setShield(active) {
+      if (!this.shield) return;
+      this.shield.classList.toggle("is-active", Boolean(active));
+      this.shield.setAttribute("aria-hidden", active ? "false" : "true");
     }
 
     updateNetworkState(online = navigator.onLine) {
@@ -1551,37 +2239,152 @@
       return this.bookIndex.get(key) || this.store.getBook(key);
     }
 
+    loadCatalogCache() {
+      try {
+        const raw = JSON.parse(window.localStorage.getItem(this.catalogCacheKey) || "null");
+        if (!raw || typeof raw !== "object") return false;
+        const valid = (list) => Array.isArray(list)
+          ? list.filter((book) => book && book.key && book.title && book.author)
+          : [];
+        const popular = valid(raw.popular);
+        const newest = valid(raw.newest);
+        if (!popular.length && !newest.length) return false;
+        this.catalog.popular = popular;
+        this.catalog.newest = newest;
+        this.catalog.totalCount = Number(raw.count) || this.catalog.totalCount;
+        this.catalog.cachedAt = raw.savedAt || null;
+        this.indexBooks([...popular, ...newest]);
+        return true;
+      } catch (error) {
+        console.warn("Saved catalog results could not be read.", error);
+        return false;
+      }
+    }
+
+    saveCatalogCache() {
+      try {
+        window.localStorage.setItem(this.catalogCacheKey, JSON.stringify({
+          savedAt: new Date().toISOString(),
+          count: this.catalog.totalCount,
+          popular: this.catalog.popular.slice(0, 16),
+          newest: this.catalog.newest.slice(0, 16)
+        }));
+      } catch (error) {
+        /* Storage can be full or blocked; the live catalog still works. */
+        console.warn("Catalog results could not be saved for offline use.", error);
+      }
+    }
+
+    applyStarterShelf() {
+      const starter = Config.OFFLINE_STARTER_BOOKS || [];
+      if (!starter.length) return false;
+      if (!this.catalog.popular.length) this.catalog.popular = starter.slice(0, 8);
+      if (!this.catalog.newest.length) this.catalog.newest = starter.slice(4, 12);
+      this.indexBooks(starter);
+      return true;
+    }
+
+    scheduleCatalogRetry() {
+      if (this.catalogRetryTimer || this.catalogRetryCount >= 2 || !navigator.onLine) return;
+      const wait = this.catalogRetryCount === 0 ? 7000 : 20000;
+      this.catalogRetryCount += 1;
+      this.catalogRetryTimer = window.setTimeout(() => {
+        this.catalogRetryTimer = null;
+        if (navigator.onLine) this.loadLiveShelves();
+      }, wait);
+    }
+
+    retryCatalogIfNeeded() {
+      if (!navigator.onLine || this.catalog.loadingShelves) return;
+      if (!this.catalog.offlineNotice && !this.catalog.popularError && !this.catalog.newestError) return;
+      this.catalogRetryCount = 0;
+      this.loadLiveShelves();
+    }
+
+    catalogNoticeMarkup() {
+      if (!this.catalog.offlineNotice) return "";
+      return `
+        <div class="catalog-notice" role="status">
+          <span class="catalog-notice-icon" aria-hidden="true">☕</span>
+          <p>${escapeHTML(this.catalog.offlineNotice)}</p>
+          <button class="text-button" type="button" data-action="retry-api">Try the live catalog again</button>
+        </div>
+      `;
+    }
+
     async loadLiveShelves() {
-      this.catalog.loadingPopular = true;
-      this.catalog.loadingNewest = true;
+      if (this.catalog.loadingShelves) return;
+      this.catalog.loadingShelves = true;
+      window.clearTimeout(this.catalogRetryTimer);
+      this.catalogRetryTimer = null;
+
+      const hasBooks = this.catalog.popular.length > 0 || this.catalog.newest.length > 0;
+      // With saved or starter books already in hand, paint them right away and
+      // skip the skeleton state entirely.
+      this.catalog.loadingPopular = !hasBooks;
+      this.catalog.loadingNewest = !hasBooks;
       this.refreshCatalogView();
 
-      const popularController = new AbortController();
-      const newestController = new AbortController();
-      const [popular, newest] = await Promise.allSettled([
-        this.api.popular(popularController.signal),
-        this.api.newest(newestController.signal)
-      ]);
+      let popular = { status: "rejected" };
+      let newest = { status: "rejected" };
 
+      // When the browser already knows there is no connection, go straight to
+      // the saved/starter shelf instead of making the reader watch a spinner.
+      if (navigator.onLine) {
+        const popularController = new AbortController();
+        const newestController = new AbortController();
+        [popular, newest] = await Promise.allSettled([
+          this.api.popular(popularController.signal),
+          this.api.newest(newestController.signal)
+        ]);
+      }
+
+      let loadedAny = false;
       if (popular.status === "fulfilled") {
         this.catalog.popular = popular.value.books;
-        this.catalog.totalCount = popular.value.count;
+        this.catalog.totalCount = popular.value.count || this.catalog.totalCount;
         this.catalog.popularError = null;
         this.indexBooks(popular.value.books);
-      } else {
-        this.catalog.popularError = popular.reason?.message || "Popular books could not be loaded.";
+        loadedAny = true;
       }
       if (newest.status === "fulfilled") {
         this.catalog.newest = newest.value.books;
         this.catalog.totalCount ||= newest.value.count;
         this.catalog.newestError = null;
         this.indexBooks(newest.value.books);
-      } else {
-        this.catalog.newestError = newest.reason?.message || "New books could not be loaded.";
+        loadedAny = true;
       }
+
+      // Fill only the shelves that failed, so one slow request never leaves a
+      // blank section next to a healthy one.
+      const usedStarter = this.applyStarterShelf();
+
+      if (loadedAny) {
+        this.catalog.offlineNotice = "";
+        this.catalog.cachedAt = new Date().toISOString();
+        this.catalogRetryCount = 0;
+        this.catalogFallbackNotified = false;
+        this.saveCatalogCache();
+      } else {
+        const hadCache = Boolean(this.catalog.cachedAt);
+        this.catalog.popularError = null;
+        this.catalog.newestError = null;
+        this.catalog.offlineNotice = hadCache
+          ? "The live catalog is slow right now, so these are saved editions. They still open normally."
+          : usedStarter
+            ? "The live catalog is unreachable, so here is a starter shelf you can still read."
+            : "The live catalog is unreachable. Retrying automatically…";
+        this.scheduleCatalogRetry();
+        if (!this.catalogFallbackNotified) {
+          this.toast.show(this.catalog.offlineNotice, "warning", 7000);
+          this.catalogFallbackNotified = true;
+        }
+      }
+
       this.catalog.loadingPopular = false;
       this.catalog.loadingNewest = false;
-      this.setApiStatus(popular.status === "fulfilled" || newest.status === "fulfilled");
+      this.catalog.loadingShelves = false;
+      this.setApiStatus(loadedAny);
       this.updateAutocomplete(this.elements.search.value);
       this.refreshCatalogView();
 
@@ -1757,6 +2560,7 @@
       if (event.key !== Config.STATE_KEY || !this.store.reload()) return;
       this.elements.search.value = this.store.state.preferences.searchQuery;
       this.renderChrome();
+      this.ensureDeviceSession();
       if (!this.router.current().startsWith("reader/")) this.refreshView();
     }
 
@@ -1767,26 +2571,35 @@
       event.preventDefault();
       const actions = {
         "open-login": () => this.openLogin(),
+        "open-register": () => this.openRegister(),
+        "filter-hindi": () => this.filterHindi(trigger.dataset.category || "all"),
+        "check-backend": () => this.checkBackend(true),
+        "premium-backend-help": () => this.openPremiumBackendHelp(),
         "demo-login": () => this.demoLogin(trigger.dataset.role),
         "select-suggestion": () => this.selectSuggestion(trigger.dataset.bookKey),
         "close-modal": () => this.modal.close(),
         "logout": () => this.logout(),
         "read-book": () => this.requestRead(trigger.dataset.bookKey),
         "view-book": () => this.openBookDetails(trigger.dataset.bookKey),
-        "copy-link": () => this.copyBookLink(trigger.dataset.bookKey),
         "toggle-save": () => this.toggleSaved(trigger.dataset.bookKey),
+        "buy-plan": () => this.openCheckout(trigger.dataset.plan, null, trigger.dataset.voucherCode || ""),
+        "buy-single": () => this.openCheckout("single", trigger.dataset.bookKey, trigger.dataset.voucherCode || ""),
+        "apply-voucher": () => {
+          const form = trigger.closest("form");
+          if (form) this.applyCheckoutVoucher(form);
+        },
         "retry-api": () => this.loadLiveShelves(),
+        "retry-search": () => this.runSearch(this.store.state.preferences.searchQuery),
         "clear-search": () => this.clearSearch(),
         "load-more": () => this.loadMoreResults(),
         "view-certificate": () => this.openCertificate(trigger.dataset.certificateId || null),
         "print-certificate": () => window.print(),
         "view-badge": () => this.openBadge(trigger.dataset.badgeId),
         "print-badge": () => window.print(),
-        "claim-reward": () => this.openPremiumForCertificate(trigger.dataset.certificateId),
-        "open-voucher-claim": () => this.openVoucherClaim(trigger.dataset.bookKey, trigger.dataset.voucherCode || ""),
-        "copy-voucher": () => this.copyVoucher(trigger.dataset.voucherCode),
+        "use-voucher": () => this.openPremiumForCertificate(trigger.dataset.certificateId),
         "copy-verify-link": () => this.copyVerifyLink(trigger.dataset.certificateId),
         "download-qr": () => this.downloadCertificateQr(trigger.dataset.certificateId),
+        "revoke-device": () => this.revokeDevice(trigger.dataset.sessionId),
         "delete-custom-book": () => this.confirmDeleteCustomBook(trigger.dataset.bookKey),
         "confirm-delete-custom-book": () => this.deleteCustomBook(trigger.dataset.bookKey),
         "request-reset": () => this.requestReset(),
@@ -1802,13 +2615,17 @@
         event.preventDefault();
         await this.submitLogin(form);
       }
+      if (form.dataset.form === "register") {
+        event.preventDefault();
+        await this.submitRegister(form);
+      }
       if (form.dataset.form === "pdf-upload") {
         event.preventDefault();
         await this.uploadPdf(form);
       }
-      if (form.dataset.form === "voucher-claim") {
+      if (form.dataset.form === "checkout") {
         event.preventDefault();
-        this.submitVoucherClaim(form);
+        await this.submitCheckout(form);
       }
     }
 
@@ -1831,6 +2648,7 @@
     }
 
     openLogin() {
+      const server = Boolean(this.backend?.available);
       this.modal.open(`
         <div class="login-layout">
           <div class="login-intro"><span class="login-mark">S</span><p class="page-kicker">Member access</p><h2 id="dialog-title">Continue your reading</h2><p>Sign in to open books, save progress, write notes, and use offline reading.</p></div>
@@ -1839,32 +2657,64 @@
             <label>Password<input class="form-control" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required></label>
             <p class="form-error" id="login-error" role="alert"></p>
             <button class="button" type="submit">Sign in</button>
-            <div class="demo-credentials"><strong>Local demo accounts</strong><span>This static demo keeps authentication in your browser. Never enter a real password.</span><div class="demo-login-buttons"><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="student">Student demo</button><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="admin">Admin demo</button></div></div>
+            <button class="button button-secondary" type="button" data-action="open-register">Create an account</button>
+            <p class="auth-hint">${server
+              ? "Accounts, purchases, vouchers and the two-device limit are checked by your local ScholarScroll server."
+              : "The local server is offline, so demo accounts run only in this browser."}</p>
+            <div class="demo-credentials"><strong>${server ? "Demo accounts on the local server" : "Local demo accounts"}</strong><span>${server
+              ? "Seeded accounts: maya@scholarscroll.local / reader2026 and elena@scholarscroll.local / admin2026."
+              : "This static demo keeps authentication in your browser. Never enter a real password."}</span><div class="demo-login-buttons"><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="student">Student demo</button><button class="button button-secondary button-small" type="button" data-action="demo-login" data-role="admin">Admin demo</button></div></div>
           </form>
         </div>
       `, "input[name='email']");
+    }
+
+    openRegister() {
+      const server = Boolean(this.backend?.available);
+      this.modal.open(`
+        <div class="login-layout">
+          <div class="login-intro"><span class="login-mark">S</span><p class="page-kicker">New member</p><h2 id="dialog-title">Create your account</h2><p>Your account is stored by the local ScholarScroll server. Use the same email on your certificate voucher.</p></div>
+          <form class="auth-form" data-form="register">
+            <label>Your name<input class="form-control" name="name" type="text" autocomplete="name" maxlength="80" placeholder="Your name" required></label>
+            <label>Email address<input class="form-control" name="email" type="email" autocomplete="username" maxlength="160" placeholder="you@example.com" required></label>
+            <label>Password<input class="form-control" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required></label>
+            <p class="form-error" id="register-error" role="alert"></p>
+            <button class="button" type="submit" ${server ? "" : "disabled"}>Create account</button>
+            <button class="button button-secondary" type="button" data-action="open-login">Back to sign in</button>
+            <p class="auth-hint">${server
+              ? "Registration is handled by the local Python/SQLite server. Passwords are hashed with PBKDF2; never reuse a real password in a demo."
+              : "Registration needs the local server. Start it with run-server.cmd, or use one of the demo accounts."}</p>
+          </form>
+        </div>
+      `, "input[name='name']");
     }
 
     async demoLogin(role) {
       const user = Config.users.find((candidate) => candidate.role === role);
       if (!user) return;
       try {
-        const signedIn = await this.auth.signIn(user.email, user.demoPassword);
-        this.modal.close();
-        this.renderChrome();
-        const badges = this.store.syncBadges();
-        if (badges.length) this.announceBadges(badges);
-        this.hydrateUserRecords();
-        const pendingBook = this.pendingReadKey ? this.findBook(this.pendingReadKey) : null;
-        const pendingVoucher = this.pendingVoucherBookKey;
-        this.pendingReadKey = null;
-        this.pendingVoucherBookKey = null;
-        if (pendingBook) this.startReader(pendingBook);
-        else if (pendingVoucher) {
-          this.router.navigate("premium");
-          window.setTimeout(() => this.openVoucherClaim(pendingVoucher), 180);
-        } else this.router.navigate(signedIn.role === "admin" ? "admin" : "dashboard");
-        this.toast.show(`Welcome back, ${signedIn.name.split(" ")[0]}.`, "success");
+        let serverResult = null;
+        if (this.backend?.available) {
+          try {
+            serverResult = await this.backend.login({
+              email: user.email,
+              password: user.demoPassword,
+              deviceId: this.store.deviceId(),
+              deviceLabel: this.store.deviceLabel()
+            });
+          } catch (error) {
+            // Invalid credentials on a reachable server should be visible; a
+            // network failure falls back to the browser-only demo account.
+            if (error?.status !== null && error?.status !== 401) throw error;
+          }
+        }
+        if (serverResult) {
+          const signedIn = this.enterServerSession(serverResult);
+          this.finishSignIn(signedIn, { server: true, evicted: serverResult.evictedDevices });
+        } else {
+          const signedIn = await this.auth.signIn(user.email, user.demoPassword);
+          this.finishSignIn(signedIn, { server: false });
+        }
       } catch (error) {
         this.toast.show(error.message, "error");
       }
@@ -1878,22 +2728,30 @@
       error.textContent = "";
       try {
         const data = new FormData(form);
-        const user = await this.auth.signIn(data.get("email"), data.get("password"));
-        this.modal.close();
-        this.renderChrome();
-        const badges = this.store.syncBadges();
-        if (badges.length) this.announceBadges(badges);
-        this.hydrateUserRecords();
-        const pendingBook = this.pendingReadKey ? this.findBook(this.pendingReadKey) : null;
-        const pendingVoucher = this.pendingVoucherBookKey;
-        this.pendingReadKey = null;
-        this.pendingVoucherBookKey = null;
-        if (pendingBook) this.startReader(pendingBook);
-        else if (pendingVoucher) {
-          this.router.navigate("premium");
-          window.setTimeout(() => this.openVoucherClaim(pendingVoucher), 180);
-        } else this.router.navigate(user.role === "admin" ? "admin" : "dashboard");
-        this.toast.show(`Welcome back, ${user.name.split(" ")[0]}.`, "success");
+        const email = data.get("email");
+        const password = data.get("password");
+        let serverResult = null;
+        if (this.backend?.available) {
+          try {
+            serverResult = await this.backend.login({
+              email,
+              password,
+              deviceId: this.store.deviceId(),
+              deviceLabel: this.store.deviceLabel()
+            });
+          } catch (serverError) {
+            if (serverError?.status !== null) throw serverError;
+            // The server went away between the probe and the request; the
+            // local demo accounts still work.
+          }
+        }
+        if (serverResult) {
+          const signedIn = this.enterServerSession(serverResult);
+          this.finishSignIn(signedIn, { server: true, evicted: serverResult.evictedDevices });
+        } else {
+          const signedIn = await this.auth.signIn(email, password);
+          this.finishSignIn(signedIn, { server: false });
+        }
       } catch (loginError) {
         error.textContent = loginError.message;
         submit.disabled = false;
@@ -1901,7 +2759,79 @@
       }
     }
 
+    async submitRegister(form) {
+      const submit = form.querySelector("button[type='submit']");
+      const error = form.querySelector("#register-error");
+      if (!this.backend?.available) {
+        if (error) error.textContent = "Create an account requires the local server. Start it with run-server.cmd.";
+        return;
+      }
+      if (error) error.textContent = "";
+      submit.disabled = true;
+      submit.textContent = "Creating…";
+      try {
+        const data = new FormData(form);
+        const result = await this.backend.register({
+          name: data.get("name"),
+          email: data.get("email"),
+          password: data.get("password"),
+          deviceId: this.store.deviceId(),
+          deviceLabel: this.store.deviceLabel()
+        });
+        const user = this.enterServerSession(result);
+        this.finishSignIn(user, { server: true, evicted: result.evictedDevices });
+      } catch (registerError) {
+        if (error) error.textContent = registerError.message;
+        submit.disabled = false;
+        submit.textContent = "Create account";
+      }
+    }
+
+    enterServerSession(result) {
+      const user = this.store.ensureUser(result.user);
+      this.store.setSession(user.id);
+      this.applyServerSnapshot({ ...result, user });
+      return this.store.currentUser || user;
+    }
+
+    finishSignIn(user, { server = false, evicted = [] } = {}) {
+      if (server) {
+        if (evicted?.length) {
+          this.toast.show(
+            `Signed in. ${evicted.length} older ${pluralize(evicted.length, "device")} disconnected — an account can use at most ${Config.MAX_DEVICES} devices.`,
+            "warning",
+            8000
+          );
+        }
+      } else {
+        this.enterDeviceSession(user);
+      }
+      this.modal.close();
+      this.renderChrome();
+      const badges = this.store.syncBadges();
+      if (badges.length) this.announceBadges(badges);
+      this.hydrateUserRecords();
+      const pendingCheckout = this.pendingCheckout;
+      const pendingBookKey = this.pendingReadKey;
+      this.pendingReadKey = null;
+      this.pendingCheckout = null;
+      if (pendingCheckout) {
+        this.router.navigate("premium");
+        window.setTimeout(() => this.openCheckout(pendingCheckout.planId, pendingCheckout.bookKey, pendingCheckout.voucherCode), 180);
+      } else if (pendingBookKey) this.requestRead(pendingBookKey);
+      else this.router.navigate(user.role === "admin" ? "admin" : "dashboard");
+      this.toast.show(`Welcome back, ${user.name.split(" ")[0]}.`, "success");
+      if (server) {
+        this.scheduleBackendSync(true);
+        this.syncCertificates();
+      }
+    }
+
     logout() {
+      const user = this.store.currentUser;
+      if (user) this.store.deactivateCurrentDevice(user.id);
+      if (this.backend) this.backend.logout();
+      this.backendSyncAt = 0;
       this.reader?.destroy();
       this.reader = null;
       this.auth.signOut();
@@ -1911,12 +2841,54 @@
       this.toast.show("You have been signed out.", "info");
     }
 
+    enterDeviceSession(user) {
+      const { revoked } = this.store.registerDeviceSession(user.id);
+      if (revoked.length) {
+        this.toast.show(
+          `Signed in. ${revoked.length} older ${pluralize(revoked.length, "device")} disconnected — an account can use at most ${Config.MAX_DEVICES} devices.`,
+          "warning",
+          8000
+        );
+      }
+    }
+
+    ensureDeviceSession() {
+      const user = this.store.currentUser;
+      if (!user) return;
+      if (user.server && this.backend?.available && this.backend.hasToken()) {
+        this.scheduleBackendSync();
+        return;
+      }
+      const session = this.store.currentDeviceSession(user.id);
+      if (!session) {
+        this.enterDeviceSession(user);
+        return;
+      }
+      if (session.active) return;
+      this.reader?.destroy();
+      this.reader = null;
+      document.body.classList.remove("reader-mode");
+      this.auth.signOut();
+      this.renderChrome();
+      this.router.navigate("store");
+      this.toast.show(
+        `You were signed out because ${user.name.split(" ")[0]}'s account is now active on ${Config.MAX_DEVICES} other devices.`,
+        "error",
+        9000
+      );
+    }
+
     requestRead(bookKey) {
       const book = this.findBook(bookKey);
       if (!book?.reader) return this.toast.show("This title has no browser-readable format.", "warning");
       if (!this.store.currentUser) {
         this.pendingReadKey = book.key;
         this.openLogin();
+        return;
+      }
+      if (book.premium && !this.store.hasPremiumAccess(book.key)) {
+        this.pendingReadKey = book.key;
+        this.openPremiumGate(book);
         return;
       }
       this.startReader(book);
@@ -1954,6 +2926,10 @@
       }
 
       let book = this.findBook(bookKey);
+      if (!book) {
+        book = (Config.HINDI_BOOKS || []).find((item) => item.key === bookKey) || null;
+        if (book) this.indexBooks([book]);
+      }
       if (!book && bookKey.startsWith("gutenberg-")) {
         this.elements.routeView.innerHTML = this.loadingState("Restoring the live book record…");
         try {
@@ -1972,6 +2948,19 @@
         this.toast.show("The reader format for this book is unavailable.", "error");
         return;
       }
+      if (book.premium && !this.store.hasPremiumAccess(book.key)) {
+        this.router.navigate("premium", true);
+        this.toast.show("That premium title needs an active plan or a lifetime unlock.", "warning", 6000);
+        return;
+      }
+      if (this.premiumEditionNeedsBackend(book)) {
+        this.toast.show(
+          "This PDF edition is hosted by the ScholarScroll backend. Connect a backend in Settings to read it on this site.",
+          "warning",
+          7000
+        );
+        return;
+      }
 
       this.reader?.destroy();
       this.modal.close();
@@ -1983,17 +2972,27 @@
           saveLocation: (activeBook, location) => this.store.saveReaderLocation(activeBook, location),
           toggleBookmark: (key, page, percent) => this.store.toggleReaderBookmark(key, page, percent),
           saveNote: (key, page, text) => this.store.saveReaderNote(key, page, text),
-          markComplete: (activeBook) => this.store.markComplete(activeBook)
+          markComplete: (activeBook) => {
+            const result = this.store.markComplete(activeBook);
+            if (result?.certificate) this.syncCertificate(result.certificate);
+            return result;
+          }
         },
         preferences: () => this.store.getReaderPreferences(),
         savePreferences: (preferences) => this.store.saveReaderPreferences(preferences),
         isComplete: (key) => this.store.isComplete(key),
         onClose: () => this.closeReader(),
-        notify: (message, type, duration) => this.toast.show(message, type, duration)
+        notify: (message, type, duration) => this.toast.show(message, type, duration),
+        watermark: () => {
+          const user = this.store.currentUser;
+          if (!user) return "";
+          const stamp = new Date().toISOString().slice(0, 10);
+          return `${user.email} · ${stamp}`;
+        }
       });
-      this.reader.open(book);
+      this.reader.open(this.prepareReaderBook(book));
       this.renderChrome();
-      this.updateDocumentMeta(this.routes.catalog, book);
+      this.updateDocumentMeta(book.hindi ? this.routes.hindi : this.routes.catalog, book);
     }
 
     renderBookRoute(bookKey) {
@@ -2011,7 +3010,7 @@
         show(book);
         return;
       }
-      this.elements.routeView.innerHTML = this.loadingState("Restoring the shared book record…");
+      this.elements.routeView.innerHTML = this.loadingState("Restoring the book record…");
       this.api.byIds([Number(String(bookKey).replace("gutenberg-", ""))])
         .then((result) => {
           const fetched = result.books[0];
@@ -2027,39 +3026,19 @@
         });
     }
 
-    copyBookLink(bookKey) {
-      const url = `${window.location.origin}${window.location.pathname}#book/${encodeURIComponent(bookKey)}`;
-      const fallback = () => {
-        const field = document.createElement("textarea");
-        field.value = url;
-        field.setAttribute("readonly", "");
-        field.style.position = "fixed";
-        field.style.opacity = "0";
-        document.body.append(field);
-        field.select();
-        try { document.execCommand("copy"); } catch { /* ignore */ }
-        field.remove();
-      };
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(url).then(() => this.toast.show("Share link copied.", "success")).catch(() => {
-          fallback();
-          this.toast.show("Share link copied.", "success");
-        });
-      } else {
-        fallback();
-        this.toast.show("Share link copied.", "success");
-      }
-    }
-
     openBookDetails(bookKey) {
       const book = this.findBook(bookKey);
       if (!book) return;
       const saved = this.store.currentUser ? this.store.isSaved(book.key) : false;
       const subjects = (book.subjects || []).slice(0, 4);
+      const needsPremium = Boolean(book.premium && this.store.currentUser && !this.store.hasPremiumAccess(book.key));
+      const readLabel = !this.store.currentUser
+        ? "Sign in to read"
+        : needsPremium ? "Get premium access" : "Read now";
       this.modal.open(`
         <div class="live-book-detail">
           <div class="detail-cover-wrap">${this.coverMarkup(book, "detail-live-cover")}</div>
-          <div><p class="page-kicker">${escapeHTML(book.category || "Public-domain collection")}</p><h2 id="dialog-title">${escapeHTML(book.title)}</h2><p class="detail-byline">${escapeHTML(book.author)}</p><p class="detail-summary">${escapeHTML(book.summary || "No description is available for this edition.")}</p>${subjects.length ? `<p class="detail-subjects">${subjects.map((subject) => `<span>${escapeHTML(subject)}</span>`).join("")}</p>` : ""}<div class="detail-stats"><span><strong>${compactNumber(book.downloadCount)}</strong> downloads</span><span><strong>${book.reader?.engine === "pdf" ? "PDF.js" : "Protected text"}</strong> reader</span></div><div class="button-row"><button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}" ${book.reader ? "" : "disabled"}>${this.store.currentUser ? "Read now" : "Sign in to read"}</button>${this.store.currentUser ? `<button class="button button-secondary" type="button" data-action="toggle-save" data-book-key="${escapeHTML(book.key)}">${saved ? "Remove saved book" : "Save for later"}</button>` : ""}<button class="button button-secondary" type="button" data-action="copy-link" data-book-key="${escapeHTML(book.key)}">Copy share link</button></div></div>
+          <div><p class="page-kicker">${escapeHTML(book.category || "Public-domain collection")}</p><h2 id="dialog-title">${escapeHTML(book.title)}</h2><p class="detail-byline">${escapeHTML(book.author)}</p><p class="detail-summary">${escapeHTML(book.summary || "No description is available for this edition.")}</p>${subjects.length ? `<p class="detail-subjects">${subjects.map((subject) => `<span>${escapeHTML(subject)}</span>`).join("")}</p>` : ""}<div class="detail-stats"><span><strong>${compactNumber(book.downloadCount)}</strong> downloads</span><span><strong>${book.reader?.engine === "pdf" ? "PDF.js" : "Protected text"}</strong> reader</span></div><div class="button-row"><button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}" ${book.reader ? "" : "disabled"}>${readLabel}</button>${this.store.currentUser ? `<button class="button button-secondary" type="button" data-action="toggle-save" data-book-key="${escapeHTML(book.key)}">${saved ? "Remove saved book" : "Save for later"}</button>` : ""}</div></div>
         </div>
       `);
     }
@@ -2152,10 +3131,26 @@
           <div class="storefront-hero">
             <div><span class="hero-eyebrow">Project Gutenberg · Live catalog</span><h1>Classics, discoveries,<br><em>and 79,000+ free books.</em></h1><p>Search the full Gutendex collection in real time. Create a member session to read securely, keep notes, and save progress across visits.</p><div class="hero-actions"><button class="button" type="button" data-action="open-login">Member sign in</button><a class="button button-secondary" href="#catalog" data-route-link>Browse live catalog</a></div></div><div class="hero-library-stat"><strong>${this.catalog.totalCount ? this.catalog.totalCount.toLocaleString() : "79,000+"}</strong><span>public-domain editions</span><small>Metadata updates directly from Gutendex</small></div>
           </div>
+          ${this.catalogNoticeMarkup()}
           ${query ? this.renderSearchSection(query) : `
             ${this.liveSection("Most read this week", "Ranked by Project Gutenberg downloads", this.catalog.popular, this.catalog.loadingPopular, this.catalog.popularError, "popular")}
+            ${this.hindiStorefrontTeaser()}
             ${this.liveSection("New to the archive", "Latest Gutenberg catalog additions", this.catalog.newest, this.catalog.loadingNewest, this.catalog.newestError, "new")}
           `}
+        </section>
+      `;
+    }
+
+    hindiStorefrontTeaser() {
+      const books = Config.HINDI_BOOKS || [];
+      if (!books.length) return "";
+      const picks = ["hindi-bhagavad-gita", "hindi-ramcharitmanas", "hindi-chanakya-niti", "hindi-godaan"]
+        .map((key) => books.find((book) => book.key === key))
+        .filter(Boolean);
+      return `
+        <section class="store-section hindi-teaser-section">
+          <header class="store-section-heading"><div><span>हिंदी पुस्तकालय</span><h2>हिंदी की अमर कृतियाँ</h2><p>गीता, रामायण, महाभारत, पुराण, चाणक्य, कबीर और प्रेमचंद — मुफ़्त और खुला।</p></div><a href="#hindi" data-route-link>पूरा संग्रह →</a></header>
+          <div class="hindi-mini-grid">${picks.map((book) => this.hindiMiniCard(book)).join("")}</div>
         </section>
       `;
     }
@@ -2167,6 +3162,7 @@
       return `
         <section class="content-page live-catalog-page">
           <header class="page-intro"><div><p class="page-kicker">Live Gutendex database</p><h1>${query ? `Search results for “${escapeHTML(query)}”` : "Browse public-domain books"}</h1><p>${this.catalog.totalCount ? `${this.catalog.totalCount.toLocaleString()} records available through the public API.` : "Real-time metadata from Project Gutenberg."}</p></div>${query ? '<button class="button button-secondary button-small" type="button" data-action="clear-search">Clear search</button>' : ""}</header>
+          ${this.catalogNoticeMarkup()}
           ${this.renderCatalogFilters(query)}
           ${query ? this.renderSearchGrid() : `<div class="live-book-grid">${combined.length ? combined.map((book) => this.liveBookCard(book)).join("") : this.loadingCards(12)}</div>`}
         </section>
@@ -2198,7 +3194,10 @@
 
     renderSearchGrid() {
       if (this.catalog.loadingSearch) return this.loadingState("Searching the full Gutendex catalog…");
-      if (this.catalog.searchError) return this.errorState(this.catalog.searchError);
+      if (this.catalog.searchError) return this.errorState(this.catalog.searchError, {
+        action: "retry-search",
+        hint: "Search needs a live connection. Saved books and the premium shelf still work."
+      });
       const results = this.catalog.searchResults;
       return `
         <div class="search-summary"><span>${this.catalog.searchCount.toLocaleString()} matching ${pluralize(this.catalog.searchCount, "record")}</span><span>Showing ${results.length.toLocaleString()}</span></div>
@@ -2273,7 +3272,8 @@
               ${this.streakPanel(streak)}
               ${this.challengeCard(challenge)}
               <section class="dashboard-section"><header class="section-heading"><h2>New public-domain books</h2><span>Live</span></header><div class="special-list">${this.catalog.loadingNewest ? this.loadingCards(3) : this.catalog.newest.slice(0, 4).map((book) => this.listBookCard(book)).join("")}</div></section>
-              <section class="dashboard-section premium-teaser"><header class="section-heading"><h2>Premium shelf</h2><a href="#premium" data-route-link>Open</a></header><p class="dashboard-note">${premiumTotal} curated ${pluralize(premiumTotal, "title")} · open to every member.</p><a class="button button-secondary button-small" href="#premium" data-route-link>Visit premium books</a></section>
+              <section class="dashboard-section premium-teaser"><header class="section-heading"><h2>Premium shelf</h2><a href="#premium" data-route-link>Open</a></header><p class="dashboard-note">${premiumTotal} curated ${pluralize(premiumTotal, "title")} · monthly, single-book or lifetime access.</p><a class="button button-secondary button-small" href="#premium" data-route-link>Visit premium books</a></section>
+              <section class="dashboard-section hindi-teaser"><header class="section-heading"><h2>हिंदी पुस्तकालय</h2><a href="#hindi" data-route-link>खोलें</a></header><p class="dashboard-note">गीता, रामायण, महाभारत, पुराण, कबीर और प्रेमचंद — ${(Config.HINDI_BOOKS || []).length} मुफ़्त हिंदी कृतियाँ।</p><a class="button button-secondary button-small" href="#hindi" data-route-link>हिंदी में पढ़ें</a></section>
               <section class="dashboard-section"><header class="section-heading"><h2>Your saved books</h2><a href="#bookmarks" data-route-link>Open</a></header><p class="dashboard-note">${saved.length} saved ${pluralize(saved.length, "title")} · Notes and reader positions are stored on this device.</p></section>
             </aside>
           </div>
@@ -2359,7 +3359,7 @@
       const target = Config.AVID_READER_TARGET;
       const progress = Math.min(100, Math.round((challenge.count / target) * 100));
       const earned = challenge.achievement;
-      return `<section class="challenge-panel dashboard-challenge"><span class="badge badge-gold">${Config.AVID_READER_WINDOW_DAYS}-day reading target</span><h2>${earned ? "Certificate unlocked" : `${challenge.count} of ${target} books complete`}</h2><p>${earned ? `Earned ${formatDate(earned.unlockedAt)}. The QR code on your certificate shares proof of your name, the date and the books you completed.` : `Finish ${target} books inside ${Config.AVID_READER_WINDOW_DAYS} days to earn a printable certificate and a scannable QR record of your achievement.`}</p><div class="progress-track"><div class="progress-fill" style="--progress:${progress}%"></div></div>${earned ? `<button class="button button-small" type="button" data-action="view-certificate" data-certificate-id="${escapeHTML(earned.certificateId || earned.id)}">View certificate</button>` : ""}</section>`;
+      return `<section class="challenge-panel dashboard-challenge"><span class="badge badge-gold">${Config.AVID_READER_WINDOW_DAYS}-day reading target</span><h2>${earned ? "Certificate unlocked" : `${challenge.count} of ${target} books complete`}</h2><p>${earned ? `Earned ${formatDate(earned.unlockedAt)}. Your certificate carries a private discount voucher for premium books — one use, tied to your registered email.` : `Finish ${target} books inside ${Config.AVID_READER_WINDOW_DAYS} days to earn a printable certificate and a single-use discount voucher for the premium shelf.`}</p><div class="progress-track"><div class="progress-fill" style="--progress:${progress}%"></div></div>${earned ? `<button class="button button-small" type="button" data-action="view-certificate" data-certificate-id="${escapeHTML(earned.certificateId || earned.id)}">View certificate</button>` : ""}</section>`;
     }
 
     renderBookmarks() {
@@ -2367,38 +3367,171 @@
       return `<section class="content-page"><header class="page-intro"><div><p class="page-kicker">Personal collection</p><h1>Saved books</h1><p>Metadata and reading shortcuts stored for ${escapeHTML(this.store.currentUser.name)}. Saved details remain available when the live catalog is offline.</p></div></header><div class="live-book-grid">${books.length ? books.map((book) => this.liveBookCard(book)).join("") : this.emptyState("Save books from the live catalog to find them here.")}</div></section>`;
     }
 
+    renderHindi() {
+      const books = Config.HINDI_BOOKS || [];
+      const categories = ["all", ...new Set(books.map((book) => book.category))];
+      const active = this.hindiCategory;
+      const filtered = active === "all" ? books : books.filter((book) => book.category === active);
+      const server = Boolean(this.backend?.available);
+      return `
+        <section class="content-page hindi-page">
+          <header class="hindi-hero">
+            <div class="hindi-hero-copy">
+              <p class="page-kicker">हिंदी पुस्तकालय · मुफ़्त और खुला</p>
+              <h1>हिंदी की अमर कृतियाँ</h1>
+              <p class="hindi-lede">भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर, सूरदास और प्रेमचंद — एक ही जगह, बिना शुल्क। पाठ सार्वजनिक स्रोतों से आते हैं और स्थानीय सर्वर उन्हें कैश करता है।</p>
+              <div class="hindi-hero-actions">
+                ${this.store.currentUser
+                  ? `<a class="button" href="#catalog" data-route-link>अंग्रेज़ी कैटलॉग</a>`
+                  : `<button class="button" type="button" data-action="open-login">पढ़ने के लिए साइन इन करें</button>`}
+                <a class="button button-secondary" href="#premium" data-route-link>प्रीमियम शेल्फ</a>
+              </div>
+            </div>
+            <aside class="hindi-stat-card" aria-label="हिंदी संग्रह सारांश">
+              <strong>${books.length}</strong>
+              <span>हिंदी कृतियाँ</span>
+              <small>${server ? "स्थानीय सर्वर से पाठ उपलब्ध" : "सीधे सार्वजनिक स्रोत से"}</small>
+              <span class="backend-chip ${server ? "is-online" : ""}">${server ? "Server online" : "Local mode"}</span>
+            </aside>
+          </header>
+
+          <div class="hindi-filter-bar" role="group" aria-label="हिंदी श्रेणियाँ">
+            ${categories.map((category) => `<button type="button" class="hindi-filter ${active === category ? "active" : ""}" data-action="filter-hindi" data-category="${escapeHTML(category)}">${category === "all" ? "सभी" : escapeHTML(category)}</button>`).join("")}
+          </div>
+
+          <div class="hindi-grid">
+            ${filtered.map((book) => this.hindiBookCard(book)).join("")}
+          </div>
+
+          <p class="hindi-note">ये कृतियाँ सार्वजनिक डोमेन हैं और Internet Archive तथा Wikisource से आती हैं। स्थानीय सर्वर चालू होने पर पाठ पहली बार डाउनलोड होकर कैश होता है; सर्वर बंद होने पर पाठक सीधे स्रोत का प्रयास करता है। मूल स्रोत पर जाकर भी पढ़ा जा सकता है।</p>
+        </section>
+      `;
+    }
+
+    hindiBookCard(book) {
+      const source = safeUrl(book.sourceUrl);
+      const canRead = Boolean(book.reader);
+      return `
+        <article class="hindi-book-card">
+          <div class="hindi-cover-stage">
+            ${this.coverMarkup(book, "hindi-cover-image")}
+            <span class="hindi-cover-badge">${escapeHTML(book.category)}</span>
+          </div>
+          <div class="hindi-card-body">
+            <span class="hindi-kicker">${escapeHTML(book.category)}</span>
+            <h2>${escapeHTML(book.title)}</h2>
+            <p class="hindi-author">${escapeHTML(book.author)}</p>
+            <p class="hindi-summary">${escapeHTML(book.summary)}</p>
+            <div class="hindi-actions">
+              ${canRead
+                ? `<button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}">पढ़ना शुरू करें</button>`
+                : (source
+                  ? `<a class="button button-secondary" href="${escapeHTML(source)}" target="_blank" rel="noopener noreferrer">स्रोत देखें</a>`
+                  : `<button class="button button-secondary" type="button" disabled>स्रोत उपलब्ध नहीं</button>`)}
+              ${source ? `<a class="hindi-source-link" href="${escapeHTML(source)}" target="_blank" rel="noopener noreferrer">मूल स्रोत</a>` : ""}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    hindiMiniCard(book) {
+      return `
+        <a class="hindi-mini" href="#hindi" data-route-link>
+          <span>${escapeHTML(book.category)}</span>
+          <strong>${escapeHTML(book.title)}</strong>
+          <small>${escapeHTML(book.author)}</small>
+        </a>
+      `;
+    }
+
+    filterHindi(category) {
+      this.hindiCategory = category || "all";
+      this.refreshView();
+    }
+
     renderPremium() {
       const user = this.store.currentUser;
       const total = Config.PREMIUM_BOOKS.length;
       const publicShelf = Config.PREMIUM_BOOKS.filter((book) => book.collection !== "Reader editions");
       const readerShelf = Config.PREMIUM_BOOKS.filter((book) => book.collection === "Reader editions");
+      const readerBackendOnly = readerShelf.length > 0 && readerShelf.every((book) => this.premiumEditionNeedsBackend(book));
+      const status = user ? this.store.premiumAccessStatus() : null;
+      const vouchers = user ? this.store.availableVouchers() : [];
+      const planNote = user
+        ? (status.active ? `Your access: ${escapeHTML(status.label)}` : "No active premium access yet.")
+        : "Sign in to choose a plan.";
+      const planButton = (plan) => {
+        const label = plan.id === "single" ? "Choose a book below" : `Get ${plan.name.toLowerCase()}`;
+        if (plan.id === "single") {
+          return `<a class="button button-secondary" href="#premium-shelf">Pick a title · ₹${plan.price}</a>`;
+        }
+        return user
+          ? `<button class="button" type="button" data-action="buy-plan" data-plan="${plan.id}">${escapeHTML(label)} · ₹${plan.price}</button>`
+          : `<button class="button" type="button" data-action="open-login">Sign in · ₹${plan.price}</button>`;
+      };
       return `
         <section class="content-page premium-page">
           <header class="premium-hero">
             <div class="premium-hero-copy">
               <p class="page-kicker">Members' reading room</p>
               <h1>Premium books</h1>
-              <p class="premium-lede">A curated members' shelf of public-domain essentials and supplied PDF editions — philosophy, classics, mindset and money. Every title here is open to read, free, with the same member account you use everywhere else.</p>
+              <p class="premium-lede">A curated shelf of public-domain essentials and supplied PDF editions — philosophy, classics, mindset and money. Choose a monthly pass, a single lifetime title, or lifetime access to the whole shelf.</p>
               <div class="premium-hero-actions">
                 <a class="button button-secondary" href="#catalog" data-route-link>Browse the free catalog</a>
                 ${user
-                  ? `<a class="button" href="#dashboard" data-route-link>Earn a certificate</a>`
-                  : `<button class="button" type="button" data-action="open-login">Sign in to read</button>`}
+                  ? `<a class="button" href="#premium-plans">View plans</a>`
+                  : `<button class="button" type="button" data-action="open-login">Sign in to subscribe</button>`}
               </div>
             </div>
-            <aside class="premium-status-card" aria-label="Premium collection summary">
-              <span class="page-kicker">In this collection</span>
-              <strong>${total}</strong>
-              <span>${pluralize(total, "curated title")} · open to every member</span>
-              <div class="progress-track"><div class="progress-fill" style="--progress:100%"></div></div>
+            <aside class="premium-status-card" aria-label="Premium access summary">
+              <span class="page-kicker">Your premium access</span>
+              <strong>${user ? (status.active ? "Active" : "Locked") : "Guest"}</strong>
+              <span>${planNote}</span>
+              <div class="progress-track"><div class="progress-fill" style="--progress:${user && status.active ? 100 : 12}%"></div></div>
             </aside>
           </header>
 
+          ${vouchers.length ? vouchers.map((voucher) => `
+            <div class="voucher-banner" role="status">
+              <span class="voucher-tag">${voucher.discountPercent}% OFF</span>
+              <div>
+                <strong>Hurray! Your certificate voucher is ready.</strong>
+                <p>Code <b>${escapeHTML(voucher.code)}</b> · valid until ${formatDate(voucher.expiresAt)}. One use, only for ${escapeHTML(voucher.email)}.</p>
+              </div>
+              <button class="button button-small" type="button" data-action="buy-plan" data-plan="monthly" data-voucher-code="${escapeHTML(voucher.code)}">Use on a plan</button>
+            </div>
+          `).join("") : ""}
+
+          <section class="premium-plans" id="premium-plans" aria-labelledby="premium-plans-title">
+            <header class="section-heading">
+              <div>
+                <p class="page-kicker">Simple pricing · demo checkout</p>
+                <h2 id="premium-plans-title">Choose how you read</h2>
+              </div>
+              <span class="premium-rights-badge">INR</span>
+            </header>
+            <div class="plan-grid">
+              ${Config.PREMIUM_PLANS.map((plan) => `
+                <article class="plan-card ${plan.id === "lifetime" ? "plan-card-featured" : ""}">
+                  <span class="page-kicker">${plan.id === "monthly" ? "Short-term" : plan.id === "single" ? "One title" : "Best value"}</span>
+                  <h3>${escapeHTML(plan.name)}</h3>
+                  <p class="plan-price"><strong>₹${plan.price}</strong><span>${plan.id === "monthly" ? "/ month" : "one time"}</span></p>
+                  <p class="plan-tagline">${escapeHTML(plan.tagline)}</p>
+                  <p class="plan-detail">${escapeHTML(plan.detail)}</p>
+                  ${planButton(plan)}
+                </article>
+              `).join("")}
+            </div>
+            <p class="premium-note">This is a local demo checkout — no real payment is taken and no card details are collected. Premium access is stored in this browser.</p>
+          </section>
+
+          <div id="premium-shelf"></div>
           <div class="premium-grid">
             ${publicShelf.map((book) => this.premiumBookCard(book, user)).join("")}
           </div>
 
-          <p class="premium-note">The public-domain shelf above is drawn from ordinary Project Gutenberg texts. Nothing here is paid, gated or time-limited.</p>
+          <p class="premium-note">The public-domain shelf above is drawn from ordinary Project Gutenberg texts. Reading it here requires an active premium plan.</p>
 
           ${readerShelf.length ? `
             <section class="premium-reader-shelf" aria-labelledby="premium-reader-shelf-title">
@@ -2407,9 +3540,11 @@
                   <p class="page-kicker">PDF reader editions</p>
                   <h2 id="premium-reader-shelf-title">Modern mindset &amp; money shelf</h2>
                 </div>
-                <span class="premium-rights-badge">PDF edition</span>
+                <span class="premium-rights-badge">${readerBackendOnly ? "Backend required" : "PDF edition"}</span>
               </header>
-              <p class="premium-spotlight-note">These PDF editions were supplied by the project owner for this local demo. They open in the PDF.js reader with zoom, portrait/landscape layout and light/dark themes. Check that you have the right to use each copy in your jurisdiction; they are not downloads from Project Gutenberg.</p>
+              <p class="premium-spotlight-note">${readerBackendOnly
+                ? "These PDF editions are kept off the public static deployment and are served by the ScholarScroll backend. Connect a backend in Settings to read them here; the public-domain shelf above still works in local mode."
+                : "These PDF editions were supplied by the project owner for this demo. They open in the PDF.js reader with zoom, portrait/landscape layout and light/dark themes. Check that you have the right to use each copy in your jurisdiction; they are not downloads from Project Gutenberg."}</p>
               <div class="premium-grid">
                 ${readerShelf.map((book) => this.premiumBookCard(book, user)).join("")}
               </div>
@@ -2424,7 +3559,7 @@
               </div>
               <span class="premium-rights-badge">Preview only</span>
             </header>
-            <p class="premium-spotlight-note">These popular titles are still protected by copyright and no reader copy has been supplied, so ScholarScroll cannot host their full text. The cards below link to an Open Library record so you can borrow, preview or buy a licensed copy. The public-domain shelf and the supplied reader editions above are fully readable.</p>
+            <p class="premium-spotlight-note">These popular titles are still protected by copyright and no reader copy has been supplied, so ScholarScroll cannot host their full text. The cards below link to an Open Library record so you can borrow, preview or buy a licensed copy. They are not part of the paid shelf.</p>
             <div class="premium-spotlight-grid">
               ${Config.PREMIUM_SPOTLIGHT.map((book) => this.premiumSpotlightCard(book)).join("")}
             </div>
@@ -2460,11 +3595,17 @@
 
     premiumBookCard(book, user) {
       const edition = book.collection === "Reader editions" ? "PDF edition" : "Gutenberg text";
+      const unlocked = Boolean(user && this.store.hasPremiumAccess(book.key));
+      const status = user ? this.store.premiumAccessStatus() : null;
+      const needsBackend = this.premiumEditionNeedsBackend(book);
+      const accessLabel = unlocked
+        ? (status?.lifetimeAll || status?.bookKeys?.includes(book.key) ? "Lifetime access" : "Monthly access")
+        : "Premium";
       return `
-        <article class="premium-card is-open">
+        <article class="premium-card ${unlocked ? "is-open" : "is-locked"} ${needsBackend ? "is-backend-only" : ""}">
           <div class="premium-cover-stage">
             ${this.coverMarkup(book, "premium-cover-image")}
-            <span class="premium-access-badge">${escapeHTML(edition)}</span>
+            <span class="premium-access-badge ${unlocked ? "" : "premium-access-badge-muted"}">${escapeHTML(needsBackend ? "Backend required" : unlocked ? accessLabel : edition)}</span>
           </div>
           <div class="premium-card-body">
             <span class="book-category">${escapeHTML(book.category)}</span>
@@ -2472,10 +3613,14 @@
             <p class="premium-author">${escapeHTML(book.author)}</p>
             <p class="premium-summary">${escapeHTML(book.summary)}</p>
             <div class="premium-card-actions">
-              <small>Open to all members</small>
-              ${user
-                ? `<button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}">Read now</button>`
-                : `<button class="button" type="button" data-action="open-login">Sign in to read</button>`}
+              <small>${needsBackend ? "PDF served by the backend" : unlocked ? "Included in your access" : "Premium access required"}</small>
+              ${needsBackend
+                ? `<button class="button button-secondary" type="button" data-action="premium-backend-help">Connect backend</button>`
+                : unlocked
+                  ? `<button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}">Read now</button>`
+                  : user
+                    ? `<button class="button" type="button" data-action="buy-single" data-book-key="${escapeHTML(book.key)}">Lifetime · ₹150</button>`
+                    : `<button class="button" type="button" data-action="open-login">Sign in for access</button>`}
             </div>
           </div>
         </article>
@@ -2487,15 +3632,61 @@
       const challenge = this.store.challenge();
       const streak = this.store.streakStats();
       const preferences = this.store.getReaderPreferences();
+      const access = this.store.premiumAccessStatus(user.id);
+      const vouchers = (this.store.state.achievements || [])
+        .filter((item) => item.userId === user.id && item.type === "avid-reader")
+        .map((item) => this.store.voucherForCertificate(item));
+      const devices = (this.store.state.deviceSessions?.[user.id] || []).filter((session) => session.active);
+      const currentSession = this.store.currentDeviceSession(user.id);
+      const voucherState = (voucher) => voucher.redeemed ? "used" : voucher.expired ? "expired" : "active";
       return `
         <section class="content-page settings-page">
-          <header class="page-intro"><div><p class="page-kicker">Account</p><h1>Profile and local data</h1><p>Authentication and reader state are scoped to this browser profile. This is a demonstration account, not a production identity provider.</p></div></header>
+          <header class="page-intro"><div><p class="page-kicker">Account</p><h1>Profile and local data</h1><p>${user.server ? "This account is stored by the local ScholarScroll server." : "Authentication and reader state are scoped to this browser profile."} Reading notes and progress stay in this browser; purchases and devices are checked by the server when it is running.</p></div></header>
           <div class="settings-layout">
             <section class="settings-card">
               <h2>${escapeHTML(user.name)}</h2>
               <p>${escapeHTML(user.email)} · ${escapeHTML(user.role)}</p>
               <div class="profile-summary"><span class="profile-avatar">${escapeHTML(user.initials)}</span><div><strong>${this.store.previousBooks().length} reading records</strong><small>${this.store.savedKeys().length} saved books · ${streak.badges.length} badges</small></div></div>
               <div class="settings-stats"><span><strong>${streak.current}</strong>day streak</span><span><strong>${streak.best}</strong>personal best</span><span><strong>${this.store.state.achievements.filter((item) => item.userId === user.id).length}</strong>certificates</span></div>
+            </section>
+            <section class="settings-card settings-premium-card">
+              <h2>Premium access</h2>
+              <p class="settings-status ${access.active ? "is-active" : ""}"><strong>${access.active ? "Active" : "Not active"}</strong> · ${escapeHTML(access.label)}</p>
+              <p>Monthly passes, single lifetime titles and lifetime all-access are managed from the premium shelf. Demo checkout only; no real payment is taken.</p>
+              <div class="settings-actions"><a class="button button-small" href="#premium" data-route-link>View premium plans</a><a class="button button-secondary button-small" href="#hindi" data-route-link>हिंदी पुस्तकालय</a></div>
+            </section>
+            <section class="settings-card settings-backend-card">
+              <h2>Local server <span class="backend-chip ${this.backend?.available ? "is-online" : ""}">${this.backend?.available ? "Connected" : "Offline"}</span></h2>
+              <p>${this.backend?.available
+                ? `Connected to the Python/SQLite backend. Accounts, purchases, vouchers and the ${Config.MAX_DEVICES}-device limit are enforced by the server.`
+                : "The Python/SQLite backend is not running. Demo accounts and device limits fall back to this browser only. Start the server with run-server.cmd."}</p>
+              <p class="settings-hint">Server address: ${this.backend?.available ? escapeHTML(this.backend.baseUrl.replace(/\/api$/, "")) : "not connected"} · Hindi texts are proxied and cached by the server when it is online.</p>
+              <div class="settings-actions"><button class="button button-secondary button-small" type="button" data-action="check-backend">Check connection</button></div>
+            </section>
+            <section class="settings-card">
+              <h2>Certificate vouchers</h2>
+              ${vouchers.length
+                ? `<ul class="voucher-status-list">${vouchers.map((voucher) => {
+                    const state = voucherState(voucher);
+                    return `<li class="voucher-status voucher-status-${state}"><div><strong>${voucher.discountPercent}% off premium</strong><span>${escapeHTML(voucher.code)}</span><small>${state === "active" ? `Valid until ${formatDate(voucher.expiresAt)}` : state === "used" ? "Already used" : `Expired ${formatDate(voucher.expiresAt)}`} · ${escapeHTML(voucher.email)}</small></div><span class="voucher-chip">${state === "active" ? "Active" : state === "used" ? "Used" : "Expired"}</span></li>`;
+                  }).join("")}</ul>`
+                : `<p>No certificate vouchers yet. Finish ${Config.AVID_READER_TARGET} books in ${Config.AVID_READER_WINDOW_DAYS} days to earn a single-use discount voucher.</p>`}
+              <p class="settings-hint">Vouchers are private to your registered email, work once, expire after ${Config.VOUCHER_VALID_DAYS} days and cannot be transferred.</p>
+            </section>
+            <section class="settings-card">
+              <h2>Devices <span class="settings-count">${devices.length} of ${Config.MAX_DEVICES}</span></h2>
+              <p>Your account can be active on at most ${Config.MAX_DEVICES} devices. Signing in on a third device automatically disconnects the oldest one.</p>
+              <ul class="device-list">${devices.map((session) => `
+                <li class="device-item ${session.id === currentSession?.id ? "is-current" : ""}">
+                  <div><strong>${escapeHTML(session.label)}</strong><small>${session.id === currentSession?.id ? "This device" : `Last active ${formatDate(session.lastSeenAt || session.createdAt)}`}</small></div>
+                  ${session.id === currentSession?.id
+                    ? `<span class="device-chip">Current</span>`
+                    : `<button class="button button-secondary button-small" type="button" data-action="revoke-device" data-session-id="${escapeHTML(session.id)}">Disconnect</button>`}
+                </li>
+              `).join("")}</ul>
+              <p class="settings-hint">${user.server
+                ? "Device limits and sessions are enforced by the local server."
+                : "Device limits are enforced inside this browser demo. Start the local server to enforce them across devices."}</p>
             </section>
             <section class="settings-card">
               <h2>Reader appearance</h2>
@@ -2510,7 +3701,7 @@
             </section>
             <section class="settings-card">
               <h2>Storage &amp; privacy</h2>
-              <p>Metadata, notes and authentication use localStorage. Offline document bytes use IndexedDB. No profile data is sent to a server by this demo.</p>
+              <p>Metadata, notes and reader positions use localStorage. Offline document bytes use IndexedDB. When the local server is running, account, entitlement, voucher and device records are also stored in its SQLite database.</p>
               <p class="storage-estimate"><span>Browser storage used</span><strong data-storage-estimate>Calculating…</strong></p>
               <div class="settings-actions"><button class="button button-danger" type="button" data-action="request-reset">Reset local state</button><button class="button button-secondary" type="button" data-action="logout">Log out</button></div>
             </section>
@@ -2567,14 +3758,17 @@
     renderAbout() {
       return `
         <section class="content-page prose-page">
-          <header class="page-intro"><div><p class="page-kicker">About</p><h1>A calmer way to read the classics</h1><p>ScholarScroll is a student-built, browser-only library for public-domain books. It combines live catalog discovery with a distraction-free reader and local progress tracking.</p></div></header>
+          <header class="page-intro"><div><p class="page-kicker">About</p><h1>A calmer way to read the classics</h1><p>ScholarScroll is a student-built library for public-domain books. It combines live catalog discovery, a free Hindi classics shelf and a distraction-free reader with progress tracking.</p></div></header>
           <div class="prose-grid">
             <article class="prose-card"><h2>What it does</h2><p>Search more than 79,000 Project Gutenberg editions through Gutendex, read text editions in a protected reader, keep private notes and bookmarks, and store documents for offline reading.</p></article>
-            <article class="prose-card"><h2>Reading streaks &amp; badges</h2><p>Every day you read is recorded locally. Milestones at 1, 7, 30, 180 and 365 consecutive days unlock a badge carrying your name and a personal congratulation.</p></article>
-            <article class="prose-card"><h2>Certificates &amp; QR records</h2><p>Completing three books inside a seven-day window unlocks an Avid Reader certificate. Its QR code opens a shareable record with your name, the date and the books you finished.</p></article>
-            <article class="prose-card"><h2>Honest demo boundaries</h2><p>This build has no server. Accounts, badges, certificates and reading records are local demonstrations. They are not identity-verified credentials, and nothing is transmitted to ScholarScroll.</p></article>
+            <article class="prose-card"><h2>हिंदी पुस्तकालय</h2><p>भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर, सूरदास और प्रेमचंद सहित बीस सार्वजनिक-डोमेन हिंदी कृतियाँ — बिना शुल्क पढ़ें। पाठ Internet Archive से आते हैं और स्थानीय सर्वर उन्हें कैश करता है।</p></article>
+            <article class="prose-card"><h2>Reading streaks &amp; badges</h2><p>Every day you read is recorded. Milestones at 1, 7, 30, 180 and 365 consecutive days unlock a badge carrying your name and a personal congratulation.</p></article>
+            <article class="prose-card"><h2>Certificates &amp; vouchers</h2><p>Completing three books inside a seven-day window unlocks an Avid Reader certificate and a single-use discount voucher for the premium shelf. The QR code verifies the reading record but never contains the voucher code.</p></article>
+            <article class="prose-card"><h2>Premium shelf</h2><p>Three demo plans: ₹50 for a month of premium access, ₹150 for one premium book for life, or ₹1000 for lifetime all-access. No real payment is taken until a payment provider is connected.</p></article>
+            <article class="prose-card"><h2>Optional local server</h2><p>Run <code>run-server.cmd</code> to start a Python/SQLite backend on your machine. It handles real server-side accounts, the two-device limit, purchases and vouchers. Without it the app falls back to browser-only demo mode.</p></article>
+            <article class="prose-card"><h2>Honest boundaries</h2><p>Certificates are reading records, not legal credentials. Screenshot blocking is a deterrent, not a guarantee. Payments are simulated until a provider is added.</p></article>
           </div>
-          <div class="prose-actions"><a class="button" href="#catalog" data-route-link>Browse the catalog</a><a class="button button-secondary" href="#sources" data-route-link>Read about our sources</a></div>
+          <div class="prose-actions"><a class="button" href="#catalog" data-route-link>Browse the catalog</a><a class="button button-secondary" href="#hindi" data-route-link>हिंदी पुस्तकालय</a><a class="button button-secondary" href="#sources" data-route-link>Read about our sources</a></div>
         </section>
       `;
     }
@@ -2586,8 +3780,9 @@
           <div class="prose-grid">
             <article class="prose-card"><h2>Project Gutenberg</h2><p>Book texts, covers and catalogue metadata originate from <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>. Most works are in the public domain in the United States; local copyright rules may differ.</p></article>
             <article class="prose-card"><h2>Gutendex API</h2><p>Live discovery uses the free <a href="https://gutendex.com/" target="_blank" rel="noopener noreferrer">Gutendex</a> JSON API. Availability and latency depend on that public service. Search results are cached only in memory for the current session.</p></article>
+            <article class="prose-card"><h2>हिंदी स्रोत</h2><p>हिंदी कृतियाँ <a href="https://archive.org/" target="_blank" rel="noopener noreferrer">Internet Archive</a> के सार्वजनिक-डोमेन स्कैन से आती हैं, और मीराबाई जैसी कुछ कृतियाँ Wikisource से जुड़ी हैं। स्थानीय सर्वर पाठ को डाउनलोड और कैश करता है; मूल स्रोत लिंक हर कार्ड पर दिया गया है।</p></article>
             <article class="prose-card"><h2>Reader technology</h2><p>PDF documents are rendered with <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener noreferrer">PDF.js</a>. QR codes are generated locally with the MIT-licensed <code>qrcode-generator</code> library, so certificate codes never leave your browser.</p></article>
-            <article class="prose-card"><h2>Attribution &amp; takedown</h2><p>If you believe a work is presented incorrectly, contact the project maintainer with the title, Gutenberg ID and the nature of the concern. Public-domain status is always determined by the source archive and your local law.</p></article>
+            <article class="prose-card"><h2>Attribution &amp; takedown</h2><p>If you believe a work is presented incorrectly, contact the project maintainer with the title, source identifier and the nature of the concern. Public-domain status is always determined by the source archive and your local law.</p></article>
           </div>
         </section>
       `;
@@ -2596,12 +3791,13 @@
     renderPrivacy() {
       return `
         <section class="content-page prose-page">
-          <header class="page-intro"><div><p class="page-kicker">Privacy</p><h1>Your reading stays on your device</h1><p>ScholarScroll is a static application. It has no analytics, advertising, tracking pixels or ScholarScroll account server.</p></div></header>
+          <header class="page-intro"><div><p class="page-kicker">Privacy</p><h1>Your reading stays on your device</h1><p>ScholarScroll has no analytics, advertising or tracking pixels. A local Python/SQLite server can store accounts and purchases on your own machine.</p></div></header>
           <div class="prose-grid">
             <article class="prose-card"><h2>Stored in your browser</h2><p>localStorage keeps your session flag, reading history, streak days, badges, certificates, reader preferences, bookmarks and notes. IndexedDB keeps optional offline book bytes and administrator PDFs.</p></article>
-            <article class="prose-card"><h2>Sent over the network</h2><p>Search terms and book IDs go to Gutendex. Book text may be requested from Project Gutenberg or a text-only proxy. PDF.js and web fonts load from their public CDNs. These requests are subject to those services' policies.</p></article>
-            <article class="prose-card"><h2>Clearing your data</h2><p>Use “Reset local state” in Settings to clear profiles and reading data. You can also clear site data in your browser. IndexedDB documents are removed individually from the administrator page or with site data.</p></article>
-            <article class="prose-card"><h2>Certificates are public by design</h2><p>A certificate QR code contains the recipient name, date and completed book titles. Anyone who scans it can read that information. Treat the link as you would a shared document.</p></article>
+            <article class="prose-card"><h2>Stored by the local server</h2><p>When you start <code>run-server.cmd</code>, the server keeps your account, hashed password, session, device list, orders and vouchers in <code>server/data/scholarscroll.sqlite3</code>. That file is ignored by git and stays on your computer.</p></article>
+            <article class="prose-card"><h2>Sent over the network</h2><p>Search terms and book IDs go to Gutendex. Book text may be requested from Project Gutenberg, Internet Archive or the local server. PDF.js and web fonts load from public CDNs. These requests are subject to those services' policies.</p></article>
+            <article class="prose-card"><h2>Clearing your data</h2><p>Use “Reset local state” in Settings to clear browser profiles and reading data. Server data can be removed by deleting the SQLite file while the server is stopped. You can also clear site data in your browser.</p></article>
+            <article class="prose-card"><h2>Certificates are public by design</h2><p>A certificate QR code contains the recipient name, date and completed book titles. Anyone who scans it can read that information. Voucher codes are deliberately excluded from the QR payload.</p></article>
           </div>
         </section>
       `;
@@ -2781,71 +3977,202 @@
 
     openPremiumForCertificate(certificateId) {
       const achievement = this.findAchievement(certificateId);
+      if (!achievement) {
+        this.router.navigate("premium");
+        return;
+      }
+      const voucher = this.store.voucherForCertificate(achievement);
+      this.modal.close();
       this.router.navigate("premium");
-      if (achievement) {
-        this.toast.show("Every premium title is open to read — no voucher needed.", "success", 6500);
+      if (!voucher || voucher.redeemed || voucher.expired) {
+        this.toast.show("This certificate voucher is no longer available.", "info", 5000);
+        return;
       }
+      window.setTimeout(() => this.openCheckout("monthly", null, voucher.code), 260);
     }
 
-    copyVoucher(code) {
-      const value = String(code || "").trim();
-      if (!value) return;
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(value)
-          .then(() => this.toast.show(`Voucher ${value} copied.`, "success"))
-          .catch(() => this.toast.show("Copy failed. Select the voucher code manually.", "error"));
-      } else {
-        this.toast.show(`Voucher: ${value}`, "info", 7000);
-      }
-    }
-
-    openVoucherClaim(bookKey, prefillCode = "") {
-      const book = this.store.premiumBook(bookKey);
+    openPremiumGate(book) {
       if (!book) return;
-      if (!this.store.currentUser) {
-        this.pendingVoucherBookKey = bookKey;
+      this.modal.open(`
+        <div class="premium-gate">
+          <span class="page-kicker">Premium title</span>
+          <h2 id="dialog-title">Unlock “${escapeHTML(book.title)}”</h2>
+          <p>This title is part of the paid premium shelf. Choose monthly access, buy this book for life, or unlock the whole shelf for life.</p>
+          <div class="premium-gate-options">
+            <button class="button" type="button" data-action="buy-plan" data-plan="monthly">Monthly access · ₹50</button>
+            <button class="button button-secondary" type="button" data-action="buy-single" data-book-key="${escapeHTML(book.key)}">This book for life · ₹150</button>
+            <button class="button button-secondary" type="button" data-action="buy-plan" data-plan="lifetime">Everything for life · ₹1000</button>
+          </div>
+          <p class="premium-gate-note">Vouchers from certificates can be applied at checkout. Prices are demo amounts; no real payment is taken.</p>
+          <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-modal">Not now</button></div>
+        </div>
+      `, "[data-action='close-modal']");
+    }
+
+    openCheckout(planId, bookKey = null, voucherCode = "") {
+      const user = this.store.currentUser;
+      const plan = this.store.planById(planId);
+      if (!plan) return;
+      if (!user) {
+        this.pendingCheckout = { planId, bookKey, voucherCode };
         this.openLogin();
         return;
       }
-      if (this.store.premiumUnlocked(this.store.currentUser.id, bookKey)) {
-        this.toast.show("This premium book is already unlocked.", "info");
+      const book = plan.scope === "book" ? this.store.premiumBook(bookKey) : null;
+      if (plan.scope === "book" && !book) {
+        this.toast.show("Choose a premium book to buy for life.", "info");
         return;
       }
-      const vouchers = this.store.availableVouchers();
-      const suggested = prefillCode || (vouchers.length === 1 ? vouchers[0].code : "");
+      const suggested = String(voucherCode || "").trim();
+      const quote = this.store.quotePlan(planId, { bookKey, voucherCode: suggested });
+      const percent = quote.ok ? quote.percent : 0;
+      const total = quote.ok ? quote.total : plan.price;
+      const discount = plan.price - total;
       this.modal.open(`
-        <form class="voucher-form" data-form="voucher-claim" data-book-key="${escapeHTML(bookKey)}">
-          <p class="page-kicker">Premium unlock</p>
-          <h2 id="dialog-title">Unlock “${escapeHTML(book.title)}”</h2>
-          <p class="voucher-intro">A certificate voucher unlocks exactly one premium book, once. It cannot be reused or transferred.</p>
-          <label for="voucher-code">Please enter your Voucher Code:</label>
-          <input class="form-control" id="voucher-code" name="voucherCode" type="text" value="${escapeHTML(suggested)}" placeholder="SCHOLAR-XXXXXX" autocomplete="off" spellcheck="false" required>
-          <p class="form-error" id="voucher-error" role="alert"></p>
+        <form class="checkout-form" data-form="checkout" data-plan="${escapeHTML(plan.id)}" data-book-key="${escapeHTML(book?.key || "")}" data-percent="${percent}">
+          <p class="page-kicker">Demo checkout</p>
+          <h2 id="dialog-title">${escapeHTML(plan.name)}</h2>
+          ${book ? `<p class="checkout-book">${escapeHTML(book.title)} · ${escapeHTML(book.author)}</p>` : ""}
+          <p class="checkout-intro">${escapeHTML(plan.detail)}</p>
+          <div class="checkout-lines">
+            <div><span>${escapeHTML(plan.name)}</span><strong>₹${plan.price}</strong></div>
+            <div class="checkout-discount" ${percent ? "" : "hidden"}>
+              <span>Voucher discount (<span data-discount-percent>${percent}</span>%)</span>
+              <strong data-discount-amount>−₹${discount}</strong>
+            </div>
+            <div class="checkout-total"><span>Total</span><strong data-checkout-total>₹${total}</strong></div>
+          </div>
+          <label class="checkout-voucher-label" for="checkout-voucher">Voucher code (optional)
+            <div class="checkout-voucher-row">
+              <input class="form-control" id="checkout-voucher" name="voucherCode" type="text" value="${escapeHTML(suggested)}" placeholder="SCHOLAR-XXXXXX" autocomplete="off" spellcheck="false">
+              <button class="button button-secondary button-small" type="button" data-action="apply-voucher">Apply</button>
+            </div>
+          </label>
+          <p class="form-error" id="checkout-error" role="alert"></p>
+          <p class="checkout-note">Local demo checkout — no real payment is taken and no card details are collected. The voucher is single-use and tied to ${escapeHTML(user.email)}.</p>
           <div class="modal-actions">
             <button class="button button-secondary" type="button" data-action="close-modal">Cancel</button>
-            <button class="button" type="submit">Unlock this book</button>
+            <button class="button" type="submit" data-checkout-submit>Pay ₹${total} (demo)</button>
           </div>
         </form>
-      `, "#voucher-code");
+      `, "#checkout-voucher");
     }
 
-    submitVoucherClaim(form) {
-      const bookKey = form.dataset.bookKey;
-      const input = form.querySelector("#voucher-code");
-      const error = form.querySelector("#voucher-error");
-      const code = String(new FormData(form).get("voucherCode") || "").trim();
+    updateCheckoutTotals(form, percent) {
+      const plan = this.store.planById(form.dataset.plan);
+      if (!plan) return;
+      const total = Math.max(0, Math.round(plan.price * (100 - percent) / 100));
+      form.dataset.percent = String(percent);
+      const row = form.querySelector(".checkout-discount");
+      if (row) row.hidden = percent === 0;
+      const percentNode = form.querySelector("[data-discount-percent]");
+      if (percentNode) percentNode.textContent = String(percent);
+      const amountNode = form.querySelector("[data-discount-amount]");
+      if (amountNode) amountNode.textContent = `−₹${plan.price - total}`;
+      const totalNode = form.querySelector("[data-checkout-total]");
+      if (totalNode) totalNode.textContent = `₹${total}`;
+      const submit = form.querySelector("[data-checkout-submit]");
+      if (submit) submit.textContent = `Pay ₹${total} (demo)`;
+    }
+
+    applyCheckoutVoucher(form) {
+      const input = form.querySelector("#checkout-voucher");
+      const error = form.querySelector("#checkout-error");
       if (error) error.textContent = "";
-      const result = this.store.redeemVoucher(code, bookKey);
+      const result = this.store.validateVoucherForCheckout(input?.value || "");
       if (!result.ok) {
         if (error) error.textContent = result.error;
+        this.updateCheckoutTotals(form, 0);
         input?.focus();
-        input?.select();
         return;
       }
+      this.updateCheckoutTotals(form, result.percent);
+      this.toast.show(`${result.percent}% voucher applied.`, "success", 3600);
+    }
+
+    async submitCheckout(form) {
+      const error = form.querySelector("#checkout-error");
+      const submit = form.querySelector("[data-checkout-submit]");
+      if (error) error.textContent = "";
+      if (submit) submit.disabled = true;
+      const voucherInput = form.querySelector("#checkout-voucher");
+      const pendingReadKey = this.pendingReadKey;
+      const planId = form.dataset.plan;
+      const bookKey = form.dataset.bookKey || null;
+      const voucherCode = voucherInput?.value || "";
+
+      // Server-first checkout: the server re-validates the voucher, records the
+      // order and returns authoritative entitlements.
+      if (this.backend?.available && this.backend.hasToken() && this.store.currentUser?.server) {
+        try {
+          const payload = await this.backend.purchase(planId, bookKey, voucherCode);
+          this.applyServerSnapshot({ ...payload, user: payload.user || this.store.currentUser });
+          this.finishCheckout({
+            plan: this.store.planById(payload.order?.planId || planId),
+            total: payload.order?.amount,
+            percent: payload.order?.discountPercent || 0,
+            orderId: payload.order?.id
+          }, pendingReadKey);
+          return;
+        } catch (serverError) {
+          if (serverError?.status !== null) {
+            if (submit) submit.disabled = false;
+            if (error) error.textContent = serverError.message;
+            return;
+          }
+          // Network failure: keep the demo usable with the local ledger.
+        }
+      }
+
+      const result = this.store.purchasePlan(planId, { bookKey, voucherCode });
+      if (!result.ok) {
+        if (submit) submit.disabled = false;
+        if (error) error.textContent = result.error;
+        return;
+      }
+      this.finishCheckout(result, pendingReadKey);
+    }
+
+    finishCheckout(result, pendingReadKey) {
       this.modal.close();
-      if (this.router.current().startsWith("verify/")) this.router.resolve();
-      else this.refreshView();
-      this.toast.show(`“${result.book.title}” unlocked. Voucher ${result.voucher.code} has now been used.`, "success", 8500);
+      this.pendingReadKey = null;
+      this.pendingCheckout = null;
+      this.renderChrome();
+      this.refreshView();
+      const total = Number(result.total) || 0;
+      const percent = Number(result.percent) || 0;
+      const paid = percent
+        ? `₹${total} paid after ${percent}% voucher (demo).`
+        : `₹${total} paid (demo).`;
+      const planName = result.plan?.name || "Premium access";
+      this.toast.show(`${planName} unlocked. ${paid}`, "success", 7000);
+      if (pendingReadKey && this.store.hasPremiumAccess(pendingReadKey)) {
+        window.setTimeout(() => this.requestRead(pendingReadKey), 240);
+      }
+    }
+
+    async revokeDevice(sessionId) {
+      if (this.backend?.available && this.backend.hasToken() && this.store.currentUser?.server) {
+        try {
+          const payload = await this.backend.revokeDevice(sessionId);
+          this.applyServerSnapshot({ user: this.store.currentUser, devices: payload.devices });
+          this.refreshView();
+          this.toast.show("That device was disconnected.", "success");
+          return;
+        } catch (serverError) {
+          if (serverError?.status !== null) {
+            this.toast.show(serverError.message, "error");
+            return;
+          }
+        }
+      }
+      const result = this.store.revokeDeviceSession(sessionId);
+      if (!result.ok) {
+        this.toast.show(result.error, "error");
+        return;
+      }
+      this.refreshView();
+      this.toast.show("That device was disconnected.", "success");
     }
 
     badgeMarkup(badge) {
@@ -2878,6 +4205,8 @@
       const qrPayload = this.certificateQrPayload(achievement);
       const shareBase = this.store.state.preferences.shareBaseUrl;
       const qrIsLink = Boolean(shareBase) || !qrPayload.startsWith("ScholarScroll certificate");
+      const voucher = this.store.voucherForCertificate(achievement);
+      const voucherState = voucher.redeemed ? "used" : voucher.expired ? "expired" : "active";
       return `
         <article class="certificate" aria-label="Avid Reader certificate for ${escapeHTML(owner.name)}">
           <div class="certificate-frame">
@@ -2893,9 +4222,15 @@
               <span><strong>${books.length}</strong>Books completed</span>
               <span><strong>${escapeHTML(certificateId.slice(-10).toUpperCase())}</strong>Certificate ID</span>
             </div>
-            <div class="certificate-reward">
-              <div><span class="page-kicker">A note of congratulations</span><h3>Hard work, dedication and consistency</h3><p>Finishing ${books.length} ${pluralize(books.length, "book")} in ${Config.AVID_READER_WINDOW_DAYS} days is a real achievement. Keep the habit going — every premium title in the library is open to you, free, with nothing to unlock.</p></div>
-              <div class="certificate-reward-actions"><button class="button button-small button-secondary" type="button" data-action="claim-reward" data-certificate-id="${escapeHTML(certificateId)}">Browse premium books</button></div>
+            <div class="certificate-reward certificate-voucher">
+              <div><span class="page-kicker">Certificate voucher</span><h3>Hurray! You earned ${voucher.discountPercent}% off premium</h3><p>Use code <strong>${escapeHTML(voucher.code)}</strong> before ${formatDate(voucher.expiresAt)} on a monthly pass, a single lifetime book or lifetime all-access. One use only, tied to ${escapeHTML(owner.email)}.</p><p class="voucher-fineprint">${voucherState === "used"
+                ? "This voucher has already been used."
+                : voucherState === "expired"
+                  ? "This voucher has expired."
+                  : "This voucher cannot be transferred, shared or used from another account."}</p></div>
+              <div class="certificate-reward-actions">${voucherState === "active"
+                ? `<button class="button button-small" type="button" data-action="use-voucher" data-certificate-id="${escapeHTML(certificateId)}">Use voucher</button>`
+                : `<span class="voucher-status voucher-status-${voucherState}">${voucherState === "used" ? "Used" : "Expired"}</span>`}</div>
             </div>
             <div class="certificate-qr-row">
               <div class="certificate-qr">${this.qrMarkup(qrPayload, `QR code for ${owner.name}'s certificate`)}<span>Scan for details</span></div>
@@ -2924,7 +4259,6 @@
         ${this.certificateMarkup(achievement, true)}
         <div class="modal-actions">
           <button class="button button-secondary" type="button" data-action="close-modal">Close</button>
-          <button class="button button-secondary" type="button" data-action="claim-reward" data-certificate-id="${escapeHTML(achievement.certificateId || achievement.id)}">Browse premium books</button>
           <button class="button" type="button" data-action="print-certificate">Print</button>
         </div>
       `);
@@ -2998,7 +4332,7 @@
             <section class="verify-reward">
               <span class="page-kicker">Congratulations</span>
               <h2>Hard work, dedication and consistency</h2>
-              <p>${escapeHTML(payload.recipient)} completed ${books.length} ${pluralize(books.length, "book")} in ${Config.AVID_READER_WINDOW_DAYS} days. Every premium title in ScholarScroll is open to read, free, with nothing to unlock.</p>
+              <p>${escapeHTML(payload.recipient)} completed ${books.length} ${pluralize(books.length, "book")} in ${Config.AVID_READER_WINDOW_DAYS} days. The accompanying certificate voucher is private to the recipient's account and cannot be transferred.</p>
             </section>
             <p class="verify-note">This page is generated from data embedded in the certificate QR code. It is a static demonstration record, not a server-verified credential.</p>
             <div class="verify-actions"><a class="button button-secondary" href="#premium" data-route-link>Browse premium books</a><a class="button button-secondary" href="#store" data-route-link>Explore ScholarScroll</a><button class="button button-secondary" type="button" data-action="print-certificate">Print this record</button></div>
@@ -3063,8 +4397,20 @@
       return `<div class="api-loading"><span></span><p>${escapeHTML(message)}</p></div>`;
     }
 
-    errorState(message) {
-      return `<div class="api-error"><strong>Live catalog unavailable</strong><p>${escapeHTML(message)}</p><button class="button button-secondary button-small" type="button" data-action="retry-api">Retry</button></div>`;
+    errorState(message, options = {}) {
+      const action = options.action || "retry-api";
+      return `
+        <div class="api-error">
+          <div class="api-error-art" aria-hidden="true"><span class="api-error-emoji">📚</span><span class="api-error-spark">✦</span></div>
+          <strong>The shelves are taking a moment</strong>
+          <p>${escapeHTML(message)}</p>
+          <p class="api-error-hint">${escapeHTML(options.hint || "Your saved books and the premium shelf still work while the live catalog reconnects.")}</p>
+          <div class="api-error-actions">
+            <button class="button button-small" type="button" data-action="${action}">Try again</button>
+            <a class="text-link" href="#premium" data-route-link>Open premium shelf</a>
+          </div>
+        </div>
+      `;
     }
 
     emptyState(message) {

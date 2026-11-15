@@ -1,0 +1,4 @@
+{
+  "available": false,
+  "reason": "Premium PDF reader editions are served by the Python backend, not this static deployment."
+}

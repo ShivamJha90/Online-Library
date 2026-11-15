@@ -1,0 +1,9 @@
+# ScholarScroll local backend data
+server/data/
+server/__pycache__/
+*.pyc
+__pycache__/
+
+# Local editor and OS noise
+.DS_Store
+Thumbs.db

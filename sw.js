@@ -7,7 +7,7 @@
  */
 "use strict";
 
-const VERSION = "v15";
+const VERSION = "v23";
 const SHELL_CACHE = `scholarscroll-shell-${VERSION}`;
 const RUNTIME_CACHE = `scholarscroll-runtime-${VERSION}`;
 const API_CACHE = `scholarscroll-api-${VERSION}`;
@@ -15,12 +15,13 @@ const API_CACHE = `scholarscroll-api-${VERSION}`;
 const SHELL_ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=17",
-  "./js/data.js?v=17",
-  "./js/api.js?v=17",
-  "./js/reader.js?v=17",
-  "./js/app.js?v=17",
-  "./js/vendor/qrcode.js?v=17",
+  "./css/styles.css?v=25",
+  "./js/data.js?v=25",
+  "./js/api.js?v=25",
+  "./js/backend.js?v=25",
+  "./js/reader.js?v=25",
+  "./js/app.js?v=25",
+  "./js/vendor/qrcode.js?v=25",
   "./manifest.webmanifest",
   "./assets/logo-96.png",
   "./assets/favicon-32.png",
@@ -61,24 +62,6 @@ async function staleWhileRevalidate(request, cacheName) {
   return cached || network || Response.error();
 }
 
-async function networkFirst(request, cacheName, fallback = null) {
-  const cache = await caches.open(cacheName);
-  try {
-    const response = await fetch(request);
-    if (isCacheable(response)) cache.put(request, response.clone()).catch(() => {});
-    return response;
-  } catch {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    if (fallback) {
-      const shell = await caches.open(SHELL_CACHE);
-      const fallbackResponse = await shell.match(fallback);
-      if (fallbackResponse) return fallbackResponse;
-    }
-    return Response.error();
-  }
-}
-
 /**
  * Navigations must always resolve to the cached shell when the origin is
  * unreachable *or* answering with an error status. A reverse proxy can return
@@ -107,6 +90,10 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
+  // The Python/SQLite backend must never be served from the offline cache:
+  // sessions, entitlements, vouchers and device checks are live data.
+  if (url.pathname.startsWith("/api/")) return;
+
   // Navigation requests always resolve to the application shell so hash routes
   // continue to work offline and after a refresh.
   if (request.mode === "navigate") {
@@ -120,7 +107,9 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.hostname === "gutendex.com") {
-    event.respondWith(networkFirst(request, API_CACHE));
+    // Catalog responses are cached per query. Serving the cached page first
+    // makes repeat visits instant, while the background fetch keeps it fresh.
+    event.respondWith(staleWhileRevalidate(request, API_CACHE));
     return;
   }
 

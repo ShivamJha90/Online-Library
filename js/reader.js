@@ -21,6 +21,12 @@
     }
   };
 
+  /* The local Python backend may be on the same origin or on a loopback port.
+     Loopback HTTP is allowed because the backend serves the text proxy; all
+     other cross-origin HTTP stays blocked. */
+  const isLoopbackHttp = (url) => url.protocol === "http:"
+    && (url.origin === window.location.origin || ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname));
+
   /**
    * Reader documents may be remote HTTPS files or same-origin bundled assets.
    * Relative paths are resolved against the current page, but credentials,
@@ -30,7 +36,7 @@
     try {
       const url = new URL(String(value), window.location.href);
       if (url.protocol === "https:") return url.href;
-      if (url.protocol === "http:" && url.origin === window.location.origin) return url.href;
+      if (isLoopbackHttp(url)) return url.href;
       return null;
     } catch {
       return null;
@@ -434,7 +440,7 @@
   }
 
   class ReaderManager {
-    constructor({ container, cache, state, preferences, savePreferences, isComplete, onClose, notify }) {
+    constructor({ container, cache, state, preferences, savePreferences, isComplete, onClose, notify, watermark }) {
       this.container = container;
       this.cache = cache;
       this.state = state;
@@ -443,6 +449,7 @@
       this.isComplete = isComplete;
       this.onClose = onClose;
       this.notify = notify;
+      this.watermark = watermark;
       this.engine = null;
       this.book = null;
       this.currentBytes = null;
@@ -470,6 +477,7 @@
       window.scrollTo(0, 0);
       this.bindElements();
       this.bindControls();
+      this.renderWatermark();
       this.applyPreferences();
       if (window.matchMedia?.("(max-width: 760px)").matches) this.root.classList.add("notes-closed");
 
@@ -571,6 +579,7 @@
             </div>
             <div class="reader-progress-track" aria-hidden="true"><div class="reader-progress-fill" id="reader-progress-fill"></div></div>
           </header>
+          <div class="reader-watermark" id="reader-watermark" aria-hidden="true" hidden></div>
           <div class="reader-workspace">
             <main class="reader-stage" id="reader-stage">
               <div class="reader-loading" id="reader-loading" role="status"><span class="reader-spinner" aria-hidden="true"></span><p id="reader-loading-text">Checking browser storage…</p></div>
@@ -589,6 +598,23 @@
           </div>
         </section>
       `;
+    }
+
+    /**
+     * Faint, per-account forensic watermark. It does not stop a screenshot,
+     * but it makes casual sharing traceable to the signed-in account.
+     */
+    renderWatermark() {
+      const layer = this.root?.querySelector("#reader-watermark");
+      if (!layer) return;
+      const text = String(this.watermark?.() || "").trim();
+      if (!text) {
+        layer.hidden = true;
+        return;
+      }
+      layer.hidden = false;
+      const tile = `<span>${escapeHTML(text)}</span>`;
+      layer.innerHTML = Array.from({ length: 24 }, () => tile).join("");
     }
 
     bindElements() {
@@ -832,7 +858,7 @@
     }
 
     async fetchTextResource(sourceUrl, expectedMimeType) {
-      const url = safeHttpsUrl(sourceUrl);
+      const url = safeDocumentUrl(sourceUrl);
       if (!url) throw new Error("The text source URL is invalid.");
       this.abortController = new AbortController();
 
@@ -856,6 +882,9 @@
         return await request(url);
       } catch (directError) {
         if (directError.name === "AbortError") throw directError;
+        // The local backend already returns CORS headers, so proxying it again
+        // would only hide the real error.
+        if (isLoopbackHttp(new URL(url))) throw directError;
         // Gutenberg download hosts omit browser CORS headers. In this static
         // demo, a configurable text-only proxy is the fallback. Production
         // deployments should replace it with an owned same-origin endpoint.

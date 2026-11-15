@@ -1,0 +1,8 @@
+.git
+.gitignore
+server/data
+__pycache__
+*.pyc
+*.sqlite3
+node_modules
+.vercel
