@@ -1572,7 +1572,7 @@
         store: { title: "ScholarScroll · Live Public Library", description: "Search 79,000+ public-domain books, read securely in the browser, and keep notes and progress.", public: true, sidebar: null, header: "store", render: () => this.renderStorefront() },
         catalog: { title: "Live Catalog · ScholarScroll", description: "Browse and search the live Project Gutenberg catalog through Gutendex.", public: true, sidebar: "catalog", header: "catalog", render: () => this.renderCatalog() },
         premium: { title: "Premium Books · ScholarScroll", description: "A curated members' shelf of public-domain classics and supplied reader editions with monthly, single-book and lifetime access.", public: true, sidebar: "premium", header: "premium", render: () => this.renderPremium() },
-        hindi: { title: "हिंदी पुस्तकालय · ScholarScroll", description: "हिंदी साहित्य, भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर और प्रेमचंद का मुफ़्त संग्रह।", public: true, sidebar: "hindi", header: "hindi", render: () => this.renderHindi() },
+        hindi: { title: "हिंदी पुस्तकालय · ScholarScroll", description: "हिंदी साहित्य, भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर, प्रेमचंद, आयुर्वेद, योग, इतिहास, विज्ञान और नाटक का मुफ़्त संग्रह।", public: true, sidebar: "hindi", header: "hindi", render: () => this.renderHindi() },
         dashboard: { title: "My Library · ScholarScroll", description: "Your reading history, streak badges, certificates and recommendations.", auth: true, role: "student", sidebar: "dashboard", header: "dashboard", render: () => this.renderDashboard() },
         bookmarks: { title: "Saved Books · ScholarScroll", description: "Your personal saved-book collection.", auth: true, sidebar: "bookmarks", header: null, render: () => this.renderBookmarks() },
         settings: { title: "Settings · ScholarScroll", description: "Profile, reader preferences and local data controls.", auth: true, sidebar: "settings", header: null, render: () => this.renderSettings() },
@@ -3149,7 +3149,7 @@
         .filter(Boolean);
       return `
         <section class="store-section hindi-teaser-section">
-          <header class="store-section-heading"><div><span>हिंदी पुस्तकालय</span><h2>हिंदी की अमर कृतियाँ</h2><p>गीता, रामायण, महाभारत, पुराण, चाणक्य, कबीर और प्रेमचंद — मुफ़्त और खुला।</p></div><a href="#hindi" data-route-link>पूरा संग्रह →</a></header>
+          <header class="store-section-heading"><div><span>हिंदी पुस्तकालय</span><h2>हिंदी की अमर कृतियाँ</h2><p>गीता, रामायण, महाभारत, पुराण, चाणक्य, कबीर, प्रेमचंद के साथ आयुर्वेद, योग, इतिहास, विज्ञान और नाटक — मुफ़्त और खुला।</p></div><a href="#hindi" data-route-link>पूरा संग्रह →</a></header>
           <div class="hindi-mini-grid">${picks.map((book) => this.hindiMiniCard(book)).join("")}</div>
         </section>
       `;
@@ -3379,7 +3379,7 @@
             <div class="hindi-hero-copy">
               <p class="page-kicker">हिंदी पुस्तकालय · मुफ़्त और खुला</p>
               <h1>हिंदी की अमर कृतियाँ</h1>
-              <p class="hindi-lede">भगवद्गीता, रामायण, महाभारत, पुराण, चाणक्य नीति, कबीर, सूरदास और प्रेमचंद — एक ही जगह, बिना शुल्क। पाठ सार्वजनिक स्रोतों से आते हैं और स्थानीय सर्वर उन्हें कैश करता है।</p>
+              <p class="hindi-lede">भगवद्गीता, रामायण, महाभारत और पुराणों से लेकर चाणक्य नीति, कबीर, सूरदास, प्रेमचंद, आयुर्वेद, योग, इतिहास, विज्ञान, नाटक और आत्मकथा तक — एक ही जगह, बिना शुल्क। पाठ सार्वजनिक स्रोतों से आते हैं और स्थानीय सर्वर उन्हें कैश करता है।</p>
               <div class="hindi-hero-actions">
                 ${this.store.currentUser
                   ? `<a class="button" href="#catalog" data-route-link>अंग्रेज़ी कैटलॉग</a>`

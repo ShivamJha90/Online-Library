@@ -15,8 +15,8 @@
 - **Resilient shelves.** Requests retry once with a 7-second timeout, and successful results are cached in `localStorage`. If Gutendex is slow or unreachable, the storefront shows the saved shelf (or a bundled 12-book starter shelf) with a friendly notice and toast instead of a blank section or a bare “Retry”. The catalog also retries automatically when the browser comes back online or the tab becomes visible.
 
 ### हिंदी पुस्तकालय (Hindi classics)
-- A free shelf of **20 Hindi works**: the Bhagavad Gita, Valmiki Ramayan, Ramcharitmanas, two Mahabharat parvas, Chanakya Niti, Godaan, Premchand stories, Bhagwat/Shiv/Vishnu Puran, Kabir Bijak, Hitopadesh, Panchatantra, Yoga Vasistha, Surdas and Meera.
-- **17 titles are readable in the browser** from public-domain Internet Archive scans. The local backend proxies and caches their `_djvu.txt` text so the browser avoids Archive.org's CORS limits and repeat reads are instant.
+- A free shelf of **29 Hindi works** across literature, scripture and general knowledge: the Bhagavad Gita, Valmiki Ramayan, Ramcharitmanas, two Mahabharat parvas, Chanakya Niti, Godaan, Premchand stories, Bhagwat/Shiv/Vishnu Puran, Kabir Bijak, Hitopadesh, Panchatantra, Yoga Vasistha, Surdas and Meera, plus Ayurveda (Charak Samhita), yoga, drama (Andher Nangari), autobiography (Satya ke Prayog), medieval history, Indian science, Hindi grammar, Jyotish and Tantra.
+- **26 titles are readable in the browser** from Internet Archive scans. The local backend proxies and caches their `_djvu.txt` text so the browser avoids Archive.org's CORS limits and repeat reads are instant.
 - **3 titles are link-only** (`मीराबाई`, `कौटिल्य अर्थशास्त्र`, `गरुड़ पुराण`) because no clean public-domain full text was available; each card links to the original source.
 - Category filters, Devanagari covers, a storefront teaser and dashboard/settings cross-links.
 - With the backend offline the reader tries the Archive.org URL directly and falls back gracefully; the original source link always works.
@@ -179,7 +179,7 @@ The `?backend=` value is stored in `localStorage`, so it only needs to be opened
 
 When the Python server hosts the app itself, it injects `content="auto"` into that meta tag so the browser probes the same origin automatically. On a static host with an empty value, the app skips doomed `/api` probes and runs in local demo mode.
 
-> **Premium PDFs:** `assets/premium/` is excluded from the Vercel build by `.vercelignore`, so those files are not publicly downloadable from the official static site. The backend serves them from its own origin, and the front end rewrites repository-relative PDF paths through `backend.assetUrl()`. Without a connected backend the premium cards show a **Backend required** state instead of opening a broken reader. The backend still serves the files as static assets; add authenticated, short-lived URLs before treating them as licensed content.
+> **Premium PDFs:** `assets/premium/` ships with the static deployment so the premium shelf opens without a backend. If you later exclude that folder in `.vercelignore`, those cards automatically fall back to a **Backend required** state, and the front end rewrites repository-relative PDF paths through `backend.assetUrl()` when a server is connected. Add authenticated, short-lived URLs before treating the files as licensed content.
 
 ### Hosting the backend
 
@@ -275,7 +275,7 @@ These items are intentionally documented rather than faked:
 - **IndexedDB is not DRM.** Users with browser control can inspect stored documents. Protect licensed content on the server.
 - **Screenshot protection is best-effort.** JavaScript can black the page on blur, intercept common shortcuts and add a per-account watermark, but it cannot block an OS-level screenshot tool, a camera, or a modified browser.
 - **The static build still has local-only vouchers and devices.** If the backend is offline, single-use vouchers and the two-device limit are enforced only in the browser profile.
-- **Modern bestsellers are previews only unless a PDF was supplied.** *Rich Dad Poor Dad* and *The 7 Habits of Highly Effective People* remain copyrighted; the app links out to licensed sources instead of hosting their text. The user-supplied reader editions in `assets/premium/` are included at the project owner's request and are not a licence to redistribute them. They are excluded from the Vercel deployment and served by the backend instead.
+- **Modern bestsellers are previews only unless a PDF was supplied.** *Rich Dad Poor Dad* and *The 7 Habits of Highly Effective People* remain copyrighted; the app links out to licensed sources instead of hosting their text. The user-supplied reader editions in `assets/premium/` are included at the project owner's request and are not a licence to redistribute them. Confirm that you hold the rights to each title before publishing them.
 - **Hindi scans vary in OCR quality.** Some Archive.org texts contain OCR errors, and a few titles are link-only because no clean public-domain copy was available.
 
 ## Credits & licensing

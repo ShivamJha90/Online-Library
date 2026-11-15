@@ -4,8 +4,7 @@
     { "source": "/server/:path*", "destination": "/__blocked__" },
     { "source": "/run-server.cmd", "destination": "/__blocked__" },
     { "source": "/serve-local.cmd", "destination": "/__blocked__" },
-    { "source": "/README.md", "destination": "/__blocked__" },
-    { "source": "/assets/premium/manifest.json", "destination": "/premium-offline.json" }
+    { "source": "/README.md", "destination": "/__blocked__" }
   ],
   "headers": [
     {

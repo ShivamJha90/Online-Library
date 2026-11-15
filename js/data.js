@@ -806,6 +806,87 @@
       category: "पुराण",
       summary: "जीवन, मृत्यु और परलोक की अवधारणा — गरुड़ और विष्णु के संवाद में नैतिकता और कर्म का वर्णन।",
       externalUrl: "https://archive.org/details/full-garuda-puran-in-hindi-mannmandir-garudpuran"
+    }),
+    hindiBook({
+      key: "hindi-charak-samhita",
+      title: "चरक संहिता",
+      author: "महर्षि चरक",
+      category: "आयुर्वेद",
+      summary: "आयुर्वेद का आधारभूत ग्रंथ — शरीर, रोग, निदान और स्वस्थ जीवनचर्या पर प्राचीन भारतीय चिकित्सा-दर्शन।",
+      archiveId: "in.ernet.dli.2015.342513",
+      archiveFile: "2015.342513.99999990231619_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-divya-darshan",
+      title: "दिव्य दर्शन · योग शास्त्र",
+      author: "योग शास्त्र परंपरा",
+      category: "योग और अध्यात्म",
+      summary: "योग की वैज्ञानिक विवेचना — ध्यान, संयम और आत्मबोध के साधनों पर प्राचीन शास्त्रों के आधार पर सरल प्रस्तुति।",
+      archiveId: "in.ernet.dli.2015.343178",
+      archiveFile: "2015.343178.--_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-andher-nagari",
+      title: "अंधेर नगरी",
+      author: "भारतेंदु हरिश्चंद्र",
+      category: "नाटक",
+      summary: "राजा की मूर्खता पर तीखा व्यंग्य — मुंशी-विदूषक की बुद्धि और आम आदमी की दशा दिखाने वाला कालजयी हिंदी नाटक।",
+      archiveId: "andheri-nagri-opt-1",
+      archiveFile: "Andheri Nagri_opt1_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-satya-ke-prayog",
+      title: "सत्य के प्रयोग अथवा आत्मकथा",
+      author: "मोहनदास करमचंद गांधी",
+      category: "आत्मकथा",
+      summary: "गांधीजी की आत्मकथा — बाल्यकाल, दक्षिण अफ्रीका, सत्याग्रह और आत्म-संयम की ईमानदार जीवनयात्रा।",
+      archiveId: "satyakeprayog-gandhi-h1",
+      archiveFile: "satyakeprayog-gandhi-h1_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-purva-madhyakalin-bharat",
+      title: "पूर्व मध्यकालीन भारत",
+      author: "वासुदेव उपाध्याय",
+      category: "इतिहास",
+      summary: "सातवीं से बारहवीं सदी तक उत्तर भारत का सांस्कृतिक इतिहास — राजवंश, कला, धर्म और समाज का विस्तृत चित्रण।",
+      archiveId: "vasudev-upadhyay",
+      archiveFile: "पूर्व-मध्यकालीन भारत (Vasudev Upadhyay)_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-bharatiya-vigyan",
+      title: "भारतीय विज्ञान की कहानी",
+      author: "गुणाकर मुळे",
+      category: "विज्ञान",
+      summary: "प्राचीन भारत की गणित, खगोल, चिकित्सा और तकनीक की यात्रा — सरल भाषा में भारतीय वैज्ञानिक परंपरा।",
+      archiveId: "bhartiya-vigyan-ki-kahani-hindi",
+      archiveFile: "BHARTIYA VIGYAN KI KAHANI - HINDI_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-samagra-vyakarana",
+      title: "समग्र हिंदी व्याकरण",
+      author: "डॉ. प्रेम भारती",
+      category: "हिंदी भाषा",
+      summary: "हिंदी व्याकरण का संपूर्ण संदर्भ — वर्ण, शब्द, वाक्य, अलंकार और रचना-कौशल पर व्यवस्थित मार्गदर्शन।",
+      archiveId: "dli.language.0817",
+      archiveFile: "dli.language.0817_djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-jyotish-ratnakar",
+      title: "ज्योतिष रत्नाकर",
+      author: "देवकीनंदन सिंह",
+      category: "ज्योतिष",
+      summary: "ग्रह, राशि, भाव और दशा पर आधारित पारंपरिक भारतीय ज्योतिष का विस्तृत ग्रंथ — शास्त्रीय परंपरा का संदर्भ।",
+      archiveId: "jyotish-ratnakar",
+      archiveFile: "ज्योतिष रत्नाकर  Jyotish Ratnakar Devkinandan Singh _djvu.txt"
+    }),
+    hindiBook({
+      key: "hindi-vigyan-bhairav",
+      title: "विज्ञान भैरव तंत्र",
+      author: "तंत्र परंपरा",
+      category: "तंत्र और दर्शन",
+      summary: "भैरव और भैरवी के संवाद में चेतना, ध्यान और आत्मबोध के साधन — कश्मीर शैव परंपरा का प्रमुख तंत्र ग्रंथ।",
+      archiveId: "vigyan-bhairav-tantra-hindi-book",
+      archiveFile: "VIGYAN BHAIRAV (RUDRYAMAL TANTRA KA GOOD REHASYA)_djvu.txt"
     })
   ];
 

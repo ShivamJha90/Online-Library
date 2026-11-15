@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-11-15",
-  "note": "Presence of this file tells the front end that the bundled premium PDFs are deployed on the current origin. It is excluded from the static Vercel build together with this folder.",
+  "note": "Presence of this file tells the front end that the bundled premium PDFs are deployed on the current origin. When the folder is absent (for example a backend-only deployment) the premium cards fall back to a backend-required state instead of opening a broken reader.",
   "files": [
     "acres-of-diamonds.pdf",
     "as-a-man-thinketh.pdf",

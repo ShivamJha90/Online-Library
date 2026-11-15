@@ -12,8 +12,3 @@ __pycache__/
 *.pyc
 .git/
 .gitignore
-
-# Copyrighted premium PDFs are not part of the public static deployment.
-# The Python backend serves them from its own origin; the front end rewrites
-# repository-relative PDF paths through `backend.assetUrl()`.
-assets/premium/
