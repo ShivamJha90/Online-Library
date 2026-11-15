@@ -25,7 +25,7 @@ this API and falls back to local demo behaviour when the API is unavailable.
 Environment variables
 ---------------------
 SCHOLARSCROLL_HOST              bind host (default 127.0.0.1, or 0.0.0.0 when PORT is set)
-SCHOLARSCROLL_PORT              bind port (default 8000, or the PORT env var)
+SCHOLARSCROLL_PORT              bind port (default 8000; a platform PORT variable wins)
 SCHOLARSCROLL_DATA_DIR          data directory (default server/data)
 SCHOLARSCROLL_DB                SQLite file path (default <data>/scholarscroll.sqlite3)
 SCHOLARSCROLL_HINDI_FIXTURES    optional folder of "<key>.txt" fixtures used
@@ -61,7 +61,9 @@ DB_PATH = Path(os.environ.get("SCHOLARSCROLL_DB") or (DATA_DIR / "scholarscroll.
 HINDI_FIXTURES = Path(os.environ["SCHOLARSCROLL_HINDI_FIXTURES"]) if os.environ.get("SCHOLARSCROLL_HINDI_FIXTURES") else None
 HINDI_CACHE_DAYS = int(os.environ.get("SCHOLARSCROLL_HINDI_CACHE_DAYS", "30"))
 HOST = os.environ.get("SCHOLARSCROLL_HOST") or ("0.0.0.0" if os.environ.get("PORT") else "127.0.0.1")
-PORT = int(os.environ.get("SCHOLARSCROLL_PORT") or os.environ.get("PORT") or "8000")
+# Managed hosts (Render, Railway, Fly, Heroku-style) inject PORT and expect the
+# process to bind it. An explicit PORT must win over the local default.
+PORT = int(os.environ.get("PORT") or os.environ.get("SCHOLARSCROLL_PORT") or "8000")
 
 MAX_DEVICES = 2
 VOUCHER_PERCENTS = [10, 20, 30, 40, 50]

@@ -148,8 +148,8 @@ Backend environment variables:
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `SCHOLARSCROLL_HOST` | Bind host | `127.0.0.1` |
-| `SCHOLARSCROLL_PORT` | Bind port | `8000` |
+| `SCHOLARSCROLL_HOST` | Bind host | `127.0.0.1`, or `0.0.0.0` when `PORT` is set |
+| `SCHOLARSCROLL_PORT` | Bind port | `8000` (a platform `PORT` variable takes precedence) |
 | `SCHOLARSCROLL_DATA_DIR` | Data directory | `server/data` |
 | `SCHOLARSCROLL_DB` | SQLite file path | `<data>/scholarscroll.sqlite3` |
 | `SCHOLARSCROLL_HINDI_FIXTURES` | Folder of `<key>.txt` fixtures instead of downloading Hindi texts | unset |
