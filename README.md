@@ -21,8 +21,15 @@
 - Category filters, Devanagari covers, a storefront teaser and dashboard/settings cross-links.
 - With the backend offline the reader tries the Archive.org URL directly and falls back gracefully; the original source link always works.
 
+### Interface themes
+- **Daylight** is the default interface: a light-blue library shell, a floating white sidebar card, an orange accent, white book cards and an illustrated bookshelf scene.
+- The header sun/moon button switches to the original **Midnight** palette; the choice is stored in `localStorage["scholarscroll-ui-theme"]` and applied before first paint so the shell never flashes the wrong theme.
+- Interactive storefront sections include gradient shelf cards ("Where do you want to wander today?"), a **Surprise me** random-book action, the reading-room bookshelf and an orange certificate call to action.
+- Reader paper themes (light, sepia, dark) are independent of the interface theme.
+
 ### Reader
 - Text/HTML reader with allowlist-based sanitization, Gutenberg licence-wrapper removal, and charset detection.
+- **Paginated page sheets**: each page is a fixed-height sheet with a 52 px desk gap and a `Page N of M` footer, so page boundaries and the page count are unambiguous. Rendered sheets use `content-visibility: auto`, so font-size changes reflow in well under a second even on a 2 MB edition.
 - Administrator and bundled PDFs are rendered with PDF.js onto a canvas.
 - **Zoom controls** in the toolbar (`−`, percentage, `+`, and click-to-reset) plus the same controls in the appearance panel.
 - **Portrait / landscape layout**: portrait fits the page width and scrolls; landscape fits the page height and uses two columns for text editions.
@@ -198,7 +205,7 @@ SQLite is suitable for a small single-instance deployment. If you need multiple 
 
 ```
 index.html                 Application shell, metadata, footer
-css/styles.css             Full dark editorial UI + reader/certificate styles
+css/styles.css             Daylight/Midnight interface themes, paginated reader, certificate styles
 js/data.js                 Config, demo identities, schema v8 seed state, premium + Hindi catalog
 js/api.js                  Gutendex client and normalization
 js/backend.js              Backend client: probe, token, auth, devices, purchases, vouchers, Hindi URLs

@@ -42,7 +42,25 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:wght@400;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=27" />
+    <link rel="stylesheet" href="css/styles.css?v=28" />
+
+    <script>
+      // Apply the saved interface theme before first paint so the shell never
+      // flashes the wrong palette. The reader's paper theme is separate.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem("scholarscroll-ui-theme") === "midnight" ? "midnight" : "daylight";
+      } catch (error) {
+        document.documentElement.dataset.theme = "daylight";
+      }
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+      if (themeColor) {
+        themeColor.setAttribute(
+          "content",
+          document.documentElement.dataset.theme === "midnight" ? "#0d141e" : "#eef4fd"
+        );
+      }
+    </script>
 
     <script type="application/ld+json" id="structured-data">
       {
@@ -321,11 +339,11 @@
       window.pdfjsLib = pdfjsLib;
       window.dispatchEvent(new Event("pdfjs-ready"));
     </script>
-    <script src="js/vendor/qrcode.js?v=27" defer></script>
-    <script src="js/data.js?v=27" defer></script>
-    <script src="js/api.js?v=27" defer></script>
-    <script src="js/backend.js?v=27" defer></script>
-    <script src="js/reader.js?v=27" defer></script>
-    <script src="js/app.js?v=27" defer></script>
+    <script src="js/vendor/qrcode.js?v=28" defer></script>
+    <script src="js/data.js?v=28" defer></script>
+    <script src="js/api.js?v=28" defer></script>
+    <script src="js/backend.js?v=28" defer></script>
+    <script src="js/reader.js?v=28" defer></script>
+    <script src="js/app.js?v=28" defer></script>
   </body>
 </html>

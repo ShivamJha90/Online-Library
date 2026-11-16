@@ -254,6 +254,10 @@
       this.currentPage = 1;
       this.totalPages = 1;
       this.renderSequence = 0;
+      this.targetPage = 1;
+      this.lastViewSignature = "";
+      this.renderActive = false;
+      this.resizeFrame = null;
       this.destroyed = false;
     }
 
@@ -274,7 +278,11 @@
     }
 
     async render(pageNumber) {
+      const signature = this.viewSignature(pageNumber);
+      if (signature === this.lastViewSignature && !this.renderActive) return;
       const sequence = ++this.renderSequence;
+      this.targetPage = pageNumber;
+      this.renderActive = true;
       if (this.renderTask) {
         try { this.renderTask.cancel(); } catch { /* previous render already ended */ }
       }
@@ -310,12 +318,17 @@
       try {
         await this.renderTask.promise;
       } catch (error) {
-        if (error?.name !== "RenderingCancelledException") throw error;
+        if (error?.name !== "RenderingCancelledException") {
+          if (sequence === this.renderSequence) this.renderActive = false;
+          throw error;
+        }
         return;
       }
       if (this.destroyed || sequence !== this.renderSequence) return;
 
       this.currentPage = pageNumber;
+      this.lastViewSignature = signature;
+      this.renderActive = false;
       this.canvas.setAttribute("aria-label", `PDF page ${pageNumber} of ${this.totalPages}`);
       this.onLocation({ page: pageNumber, totalPages: this.totalPages, scrollPercent: null, engine: this.type });
     }
@@ -327,114 +340,396 @@
 
     previous() { return this.goTo(this.currentPage - 1); }
     next() { return this.goTo(this.currentPage + 1); }
-    resize() { if (this.document) return this.render(this.currentPage); }
+
+    /** A render is only worth repeating when page, size, zoom or layout changed. */
+    viewSignature(pageNumber, options = this.getViewOptions?.() || {}) {
+      return [
+        Math.floor(this.viewport.clientWidth),
+        Math.floor(this.viewport.clientHeight),
+        options.zoom ?? 1,
+        options.layout ?? "portrait",
+        pageNumber
+      ].join(":");
+    }
+
+    /**
+     * Fullscreen fires a window resize and a fullscreenchange event back to
+     * back. Both used to start a fresh PDF raster pass. Coalescing them into a
+     * single animation frame, and skipping identical view signatures, keeps the
+     * transition responsive.
+     */
+    resize() {
+      if (!this.document) return;
+      if (this.resizeFrame) window.cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = window.requestAnimationFrame(() => {
+        this.resizeFrame = null;
+        const page = this.targetPage || this.currentPage;
+        if (this.viewSignature(page) === this.lastViewSignature && !this.renderActive) return;
+        this.render(page);
+      });
+    }
 
     destroy() {
       this.destroyed = true;
+      if (this.resizeFrame) window.cancelAnimationFrame(this.resizeFrame);
       try { this.renderTask?.cancel(); } catch { /* already complete */ }
       this.loadingTask?.destroy?.();
       this.document?.destroy?.();
     }
   }
 
-  /** Protected scroll renderer for Project Gutenberg text and HTML editions. */
+  /**
+   * Protected, page-based renderer for Project Gutenberg and Archive.org text.
+   *
+   * The whole book used to live in one enormous text block, so a font-size or
+   * fullscreen change forced the browser to re-lay out millions of characters
+   * (several seconds on large Hindi scans). The text is now split into
+   * fixed-size page sheets, and `content-visibility: auto` keeps off-screen
+   * pages out of layout, which makes settings changes near-instant. The sheets
+   * also give readers an unambiguous page boundary and a page number.
+   */
   class ProtectedTextEngine {
     constructor({ viewport, content, onLocation }) {
       this.type = "text";
       this.viewport = viewport;
       this.content = content;
       this.onLocation = onLocation;
-      this.currentPage = 1;
+      this.pages = [];
+      this.pageCount = 1;
       this.totalPages = 1;
+      this.currentPage = 1;
+      this.reportedPage = 1;
       this.lastPercent = 0;
-      this.scrollTimer = null;
+      this.reportedPercent = 0;
+      this.inPageOffset = 0;
+      this.chapterCache = null;
+      this.scrollFrame = null;
+      this.correctTimer = null;
+      this.ignoreObserverUntil = 0;
+      this.observer = null;
       this.handleScroll = this.handleScroll.bind(this);
+      this.handleIntersections = this.handleIntersections.bind(this);
     }
 
     async load(payload, record) {
-      // Both branches avoid unsanitized innerHTML. HTML is rebuilt from an
-      // allowlist before insertion; plain text stays one inert text node.
-      if (payload.fragment) this.content.replaceChildren(payload.fragment);
-      else this.content.textContent = payload.text || "";
       this.content.hidden = false;
+      this.buildPages(payload);
+
       this.viewport.addEventListener("scroll", this.handleScroll, { passive: true });
+      // A narrow band near the top of the viewport decides the current page,
+      // so a page number only advances once that page is mostly behind you.
+      this.observer = new IntersectionObserver(this.handleIntersections, {
+        root: this.viewport,
+        rootMargin: "-8% 0px -84% 0px",
+        threshold: [0, 0.01, 0.5, 1]
+      });
+      this.pages.forEach((page) => this.observer.observe(page));
+
+      const pageCount = this.pageCount;
+      let target = clamp(Math.round(Number(record.lastVisitedPage) || 1), 1, pageCount);
+      const savedPercent = clamp(Number(record.lastScrollPercent) || 0, 0, 100);
+      // Records written by the old scroll-based reader can point past this
+      // edition's page count; fall back to their saved percentage.
+      if (savedPercent > 0 && (Number(record.lastVisitedPage) || 1) > pageCount) {
+        target = clamp(Math.round((savedPercent / 100) * (pageCount - 1)) + 1, 1, pageCount);
+      }
+      this.currentPage = target;
+      this.reportedPage = target;
 
       await afterNextPaint();
-      const savedPercent = clamp(Number(record.lastScrollPercent) || 0, 0, 100);
-      const maxScroll = Math.max(0, this.viewport.scrollHeight - this.viewport.clientHeight);
-      this.viewport.scrollTop = (savedPercent / 100) * maxScroll;
+      this.goTo(target, { instant: true });
+      await afterNextPaint();
       this.reportLocation(true);
+    }
+
+    /** Fixed page geometry and a character budget that roughly fills a sheet. */
+    pageMetrics() {
+      const style = getComputedStyle(this.content);
+      const fontSize = Number.parseFloat(style.fontSize) || 16;
+      const lineHeight = Number.parseFloat(style.lineHeight) || fontSize * 1.95;
+      const cardWidth = Math.min(900, Math.max(300, this.viewport.clientWidth - 48));
+      const padding = clamp(cardWidth * 0.045, 22, 46);
+      const innerWidth = Math.max(200, cardWidth - padding * 2);
+      const pageHeight = Math.max(420, this.viewport.clientHeight - 96);
+      const bodyHeight = Math.max(240, pageHeight - padding * 2 - 54);
+      const charsPerLine = Math.max(20, innerWidth / (fontSize * 0.56));
+      const linesPerPage = Math.max(8, Math.floor(bodyHeight / lineHeight));
+      return {
+        pageHeight,
+        charsPerLine,
+        linesPerPage,
+        // `contain-intrinsic-size` describes the content box, so subtract the
+        // sheet padding. Without this, skipped pages are measured 92px too tall
+        // and far page jumps drift.
+        intrinsicHeight: Math.max(220, pageHeight - padding * 2),
+        // 0.92 leaves headroom for paragraph reflow so most sheets stay close
+        // to one screen tall.
+        budget: Math.round(clamp(charsPerLine * linesPerPage * 0.92, 700, 4500))
+      };
+    }
+
+    updatePageHeight(metrics = this.pageMetrics()) {
+      this.content.style.setProperty("--reader-page-height", `${Math.round(metrics.pageHeight)}px`);
+      this.content.style.setProperty("--reader-page-intrinsic", `${Math.round(metrics.intrinsicHeight)}px`);
+    }
+
+    buildPages(payload) {
+      const metrics = this.pageMetrics();
+      this.updatePageHeight(metrics);
+      const groups = payload.fragment
+        ? this.splitHtmlPages(payload.fragment, metrics.budget)
+        : this.splitTextPages(String(payload.text || ""), metrics);
+
+      const root = document.createElement("div");
+      root.className = "reader-pages";
+      const total = Math.max(1, groups.length);
+      const fragment = document.createDocumentFragment();
+
+      groups.forEach((nodes, index) => {
+        const section = document.createElement("section");
+        section.className = "reader-page";
+        section.dataset.page = String(index + 1);
+        section.setAttribute("aria-label", `Page ${index + 1} of ${total}`);
+
+        const body = document.createElement("div");
+        body.className = "reader-page-body";
+        body.append(...nodes);
+
+        const footer = document.createElement("footer");
+        footer.className = "reader-page-footer";
+        const label = document.createElement("span");
+        label.textContent = `Page ${index + 1} of ${total}`;
+        footer.append(label);
+
+        section.append(body, footer);
+        fragment.append(section);
+        this.pages.push(section);
+      });
+
+      root.append(fragment);
+      this.content.replaceChildren(root);
+      this.pageCount = total;
+      this.totalPages = total;
+    }
+
+    /**
+     * Split plain text into pages of roughly `linesPerPage` visual lines.
+     * Counting lines (instead of characters) matters for Hindi OCR scans,
+     * whose lines are short and hard-wrapped by the source.
+     */
+    splitTextPages(text, { charsPerLine, linesPerPage }) {
+      const nodes = [];
+      const maxLineChars = Math.max(240, Math.floor(charsPerLine * linesPerPage));
+      let current = "";
+      let currentLines = 0;
+      const flush = () => {
+        if (current.trim().length) nodes.push(document.createTextNode(current));
+        current = "";
+        currentLines = 0;
+      };
+      const addLongLine = (line) => {
+        let rest = line.replace(/^\s+/, "");
+        while (rest.length > maxLineChars) {
+          let cut = rest.lastIndexOf(" ", maxLineChars);
+          if (cut < maxLineChars * 0.5) cut = maxLineChars;
+          nodes.push(document.createTextNode(rest.slice(0, cut)));
+          rest = rest.slice(cut).replace(/^\s+/, "");
+        }
+        current = rest;
+        currentLines = Math.max(1, Math.ceil(rest.length / charsPerLine));
+      };
+
+      String(text || "").replace(/\r\n?/g, "\n").split("\n").forEach((line) => {
+        if (line.length > maxLineChars) {
+          if (current.trim().length) flush();
+          addLongLine(line);
+          return;
+        }
+        const visualLines = Math.max(1, Math.ceil(line.length / charsPerLine));
+        if (currentLines && currentLines + visualLines > linesPerPage) flush();
+        current = current ? `${current}\n${line}` : line;
+        currentLines += visualLines;
+        if (currentLines >= linesPerPage) flush();
+      });
+      flush();
+      if (!nodes.length) nodes.push(document.createTextNode(""));
+      return nodes.map((node) => [node]);
+    }
+
+    /** Split sanitised HTML at block boundaries, keeping markup intact. */
+    splitHtmlPages(fragment, budget) {
+      const groups = [];
+      let current = [];
+      let length = 0;
+      const isBlock = (node) => node.nodeType === Node.ELEMENT_NODE
+        && /^(P|DIV|SECTION|ARTICLE|MAIN|HEADER|FOOTER|LI|UL|OL|DL|DT|DD|BLOCKQUOTE|PRE|H[1-6]|TABLE|FIGURE|FIGCAPTION|HR)$/.test(node.tagName);
+      const flush = () => {
+        if (current.length) groups.push(current);
+        current = [];
+        length = 0;
+      };
+
+      [...fragment.childNodes].forEach((node) => {
+        const nodeLength = (node.textContent || "").length;
+        const boundary = isBlock(node) || node.nodeType === Node.TEXT_NODE;
+        if (boundary && length && length + nodeLength > budget) flush();
+        current.push(node);
+        length += nodeLength;
+        if (boundary && length >= budget) flush();
+      });
+      flush();
+      if (!groups.length) groups.push([document.createTextNode("")]);
+      return groups;
     }
 
     calculateLocation() {
       const viewportHeight = Math.max(1, this.viewport.clientHeight);
       const maxScroll = Math.max(0, this.viewport.scrollHeight - viewportHeight);
       const scrollPercent = maxScroll ? (this.viewport.scrollTop / maxScroll) * 100 : 100;
-      const totalPages = Math.max(1, Math.ceil(this.viewport.scrollHeight / viewportHeight));
-      const page = Math.min(totalPages, Math.floor(this.viewport.scrollTop / viewportHeight) + 1);
-      return { page, totalPages, scrollPercent, engine: this.type };
+      return {
+        page: this.currentPage,
+        totalPages: this.pageCount,
+        scrollPercent,
+        engine: this.type
+      };
     }
 
     reportLocation(force = false) {
       const location = this.calculateLocation();
-      const pageChanged = location.page !== this.currentPage;
-      this.currentPage = location.page;
-      this.totalPages = location.totalPages;
       this.lastPercent = location.scrollPercent;
-      if (force || pageChanged || Math.abs(location.scrollPercent - (this.reportedPercent || 0)) >= 0.5) {
+      this.rememberInPageOffset();
+      if (force || location.page !== this.reportedPage || Math.abs(location.scrollPercent - this.reportedPercent) >= 0.5) {
+        this.reportedPage = location.page;
         this.reportedPercent = location.scrollPercent;
         this.onLocation(location);
       }
     }
 
-    handleScroll() {
-      window.clearTimeout(this.scrollTimer);
-      this.scrollTimer = window.setTimeout(() => this.reportLocation(), 140);
+    rememberInPageOffset() {
+      const page = this.pages[this.currentPage - 1];
+      if (!page) return;
+      const rect = page.getBoundingClientRect();
+      const stageTop = this.viewport.getBoundingClientRect().top;
+      this.inPageOffset = clamp(rect.top - stageTop, -Math.max(0, rect.height - 60), 0);
     }
 
-    goTo(pageNumber) {
-      const page = Math.min(this.totalPages, Math.max(1, Number.parseInt(pageNumber, 10) || this.currentPage));
-      this.viewport.scrollTo({ top: (page - 1) * this.viewport.clientHeight, behavior: "smooth" });
-      window.setTimeout(() => this.reportLocation(true), 220);
+    handleIntersections(entries) {
+      // Programmatic jumps scroll through many pages; let goTo() own the label
+      // until the smooth scroll settles instead of flickering page numbers.
+      if (performance.now() < this.ignoreObserverUntil) return;
+      const stageRect = this.viewport.getBoundingClientRect();
+      const bandTop = stageRect.top + stageRect.height * 0.08;
+      const bandBottom = stageRect.top + stageRect.height * 0.16;
+      let best = null;
+      let bestOverlap = 0;
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const overlap = Math.min(entry.boundingClientRect.bottom, bandBottom)
+          - Math.max(entry.boundingClientRect.top, bandTop);
+        if (overlap > bestOverlap) {
+          bestOverlap = overlap;
+          best = entry.target;
+        }
+      });
+      if (!best) return;
+      const page = Number(best.dataset.page) || 1;
+      if (page === this.currentPage) return;
+      this.currentPage = page;
+      this.inPageOffset = 0;
+      this.reportLocation(true);
+    }
+
+    handleScroll() {
+      if (this.scrollFrame) return;
+      this.scrollFrame = window.requestAnimationFrame(() => {
+        this.scrollFrame = null;
+        this.reportLocation();
+      });
+    }
+
+    goTo(pageNumber, { instant = false } = {}) {
+      const page = clamp(Math.round(Number(pageNumber) || this.currentPage), 1, this.pageCount);
+      const target = this.pages[page - 1];
+      if (!target) return;
+      const previous = this.currentPage;
+      const farJump = Math.abs(page - previous) > 3;
+      this.currentPage = page;
+      this.inPageOffset = 0;
+      this.ignoreObserverUntil = performance.now() + (instant || farJump ? 700 : 460);
+      const top = target.getBoundingClientRect().top - this.viewport.getBoundingClientRect().top + this.viewport.scrollTop;
+      this.viewport.scrollTo({ top: Math.max(0, top), behavior: instant || farJump ? "auto" : "smooth" });
+      window.clearTimeout(this.correctTimer);
+
+      // Off-screen sheets are measured from an intrinsic size, so a long jump
+      // can land a little short. Nudge towards the sheet until its top is at
+      // the viewport top.
+      let attempts = 0;
+      const settle = () => {
+        const delta = target.getBoundingClientRect().top - this.viewport.getBoundingClientRect().top;
+        if (Math.abs(delta) > 2 && attempts < 4) {
+          this.viewport.scrollTop = Math.max(0, this.viewport.scrollTop + delta);
+          attempts += 1;
+          this.correctTimer = window.setTimeout(settle, 150);
+          return;
+        }
+        this.ignoreObserverUntil = Math.max(this.ignoreObserverUntil, performance.now() + 60);
+        this.reportLocation(true);
+      };
+
+      if (instant || farJump) {
+        this.reportLocation(true);
+        this.correctTimer = window.setTimeout(settle, 80);
+      } else {
+        this.correctTimer = window.setTimeout(settle, 360);
+      }
     }
 
     goToPercent(percent) {
-      const maxScroll = Math.max(0, this.viewport.scrollHeight - this.viewport.clientHeight);
-      this.viewport.scrollTo({ top: (clamp(Number(percent) || 0, 0, 100) / 100) * maxScroll, behavior: "smooth" });
-      window.setTimeout(() => this.reportLocation(true), 220);
+      const page = clamp(Math.round((clamp(Number(percent) || 0, 0, 100) / 100) * (this.pageCount - 1)) + 1, 1, this.pageCount);
+      this.goTo(page);
     }
 
     getChapters() {
-      return [...this.content.querySelectorAll("h1, h2, h3")]
-        .map((heading, index) => ({
-          index,
-          label: heading.textContent.trim().replace(/\s+/g, " "),
-          top: heading.getBoundingClientRect().top - this.viewport.getBoundingClientRect().top + this.viewport.scrollTop
-        }))
+      if (this.chapterCache) return this.chapterCache;
+      this.chapterCache = [...this.content.querySelectorAll("h1, h2, h3")]
+        .map((heading, index) => {
+          const page = heading.closest(".reader-page");
+          return {
+            index,
+            label: heading.textContent.trim().replace(/\s+/g, " "),
+            page: Number(page?.dataset.page) || 1
+          };
+        })
         .filter((chapter) => chapter.label);
+      return this.chapterCache;
     }
 
     scrollToChapter(index) {
       const chapter = this.getChapters()[index];
-      if (!chapter) return;
-      this.viewport.scrollTo({ top: Math.max(0, chapter.top - 24), behavior: "smooth" });
-      window.setTimeout(() => this.reportLocation(true), 260);
+      if (chapter) this.goTo(chapter.page);
     }
 
     previous() { this.goTo(this.currentPage - 1); }
     next() { this.goTo(this.currentPage + 1); }
 
     resize() {
-      const percent = this.lastPercent;
+      const page = this.currentPage;
+      const offset = this.inPageOffset;
       window.requestAnimationFrame(() => {
-        const maxScroll = Math.max(0, this.viewport.scrollHeight - this.viewport.clientHeight);
-        this.viewport.scrollTop = (percent / 100) * maxScroll;
+        this.updatePageHeight();
+        const target = this.pages[page - 1];
+        if (target) {
+          const top = target.getBoundingClientRect().top - this.viewport.getBoundingClientRect().top + this.viewport.scrollTop + offset;
+          this.viewport.scrollTop = Math.max(0, top);
+        }
         this.reportLocation(true);
       });
     }
 
     destroy() {
-      window.clearTimeout(this.scrollTimer);
+      if (this.scrollFrame) window.cancelAnimationFrame(this.scrollFrame);
+      window.clearTimeout(this.correctTimer);
+      this.observer?.disconnect();
       this.viewport.removeEventListener("scroll", this.handleScroll);
     }
   }

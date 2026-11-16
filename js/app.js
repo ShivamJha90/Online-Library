@@ -1585,6 +1585,7 @@
     }
 
     init() {
+      this.applyUiTheme();
       this.setupAutocomplete();
       this.indexBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
       this.store.rememberBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
@@ -2078,6 +2079,56 @@
       this.openBookDetails(book.key);
     }
 
+    applyUiTheme() {
+      let theme = "daylight";
+      try {
+        theme = localStorage.getItem("scholarscroll-ui-theme") === "midnight" ? "midnight" : "daylight";
+      } catch { /* storage can be unavailable in private mode */ }
+      document.documentElement.dataset.theme = theme;
+      this.syncThemeColor(theme);
+    }
+
+    syncThemeColor(theme) {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", theme === "midnight" ? "#0d141e" : "#eef4fd");
+    }
+
+    toggleUiTheme() {
+      const next = document.documentElement.dataset.theme === "midnight" ? "daylight" : "midnight";
+      document.documentElement.dataset.theme = next;
+      this.syncThemeColor(next);
+      try { localStorage.setItem("scholarscroll-ui-theme", next); } catch { /* ignore */ }
+      this.renderChrome();
+      this.toast.show(next === "daylight" ? "Daylight theme on." : "Midnight theme on.", "success", 2400);
+    }
+
+    surpriseMe() {
+      const pool = this.uniqueBooks([
+        ...this.catalog.popular,
+        ...this.catalog.newest,
+        ...(Config.HINDI_BOOKS || []),
+        ...Config.PREMIUM_BOOKS
+      ]);
+      if (!pool.length) {
+        this.toast.show("The shelves are still arriving. Try again in a moment.", "warning", 3200);
+        return;
+      }
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      this.openBookDetails(pick.key);
+    }
+
+    themeToggleMarkup() {
+      const theme = document.documentElement.dataset.theme === "midnight" ? "midnight" : "daylight";
+      const label = theme === "daylight" ? "Switch to midnight theme" : "Switch to daylight theme";
+      return `
+        <button class="theme-toggle" type="button" data-action="toggle-theme" aria-label="${label}" aria-pressed="${theme === "midnight"}" title="${label}">
+          <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"></path></svg>
+          <span class="sr-only">${label}</span>
+        </button>
+      `;
+    }
+
     renderChrome() {
       const user = this.store.currentUser;
       const readerMode = document.body.classList.contains("reader-mode");
@@ -2088,12 +2139,13 @@
       this.elements.storageDot.dataset.tooltip = this.store.persistenceAvailable === false ? "Temporary state" : "Saved locally";
 
       this.elements.authControl.innerHTML = user ? `
+        ${this.themeToggleMarkup()}
         <a class="user-profile" href="#settings" data-route-link aria-label="Open profile settings">
           <span class="profile-copy"><strong>${escapeHTML(user.name)}</strong><small>${escapeHTML(user.role)}</small></span>
           <span class="profile-avatar" aria-hidden="true">${escapeHTML(user.initials)}</span>
         </a>
         <button class="logout-button" type="button" data-action="logout">Log out</button>
-      ` : '<button class="button button-small" type="button" data-action="open-login">Sign in</button>';
+      ` : `${this.themeToggleMarkup()}<button class="button button-small" type="button" data-action="open-login">Sign in</button>`;
     }
 
     renderRoute(requestedRoute) {
@@ -2570,6 +2622,8 @@
       if (!trigger) return;
       event.preventDefault();
       const actions = {
+        "toggle-theme": () => this.toggleUiTheme(),
+        "surprise-me": () => this.surpriseMe(),
         "open-login": () => this.openLogin(),
         "open-register": () => this.openRegister(),
         "filter-hindi": () => this.filterHindi(trigger.dataset.category || "all"),
@@ -3134,9 +3188,94 @@
           ${this.catalogNoticeMarkup()}
           ${query ? this.renderSearchSection(query) : `
             ${this.liveSection("Most read this week", "Ranked by Project Gutenberg downloads", this.catalog.popular, this.catalog.loadingPopular, this.catalog.popularError, "popular")}
+            ${this.shelfPulseMarkup()}
             ${this.hindiStorefrontTeaser()}
             ${this.liveSection("New to the archive", "Latest Gutenberg catalog additions", this.catalog.newest, this.catalog.loadingNewest, this.catalog.newestError, "new")}
+            ${this.readingRoomMarkup()}
+            ${this.libraryCtaMarkup()}
           `}
+        </section>
+      `;
+    }
+
+    shelfPulseMarkup() {
+      const hindiCount = (Config.HINDI_BOOKS || []).length;
+      return `
+        <section class="shelf-pulse" aria-labelledby="shelf-pulse-title">
+          <header class="shelf-pulse-head">
+            <div><span class="hero-eyebrow">Pick a shelf</span><h2 id="shelf-pulse-title">Where do you want to wander today?</h2></div>
+            <button class="button button-secondary button-small" type="button" data-action="surprise-me">
+              <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l10 10h3M4 17h3l10-10h3"></path><path d="m17 4 3 3-3 3M17 14l3 3-3 3"></path></svg>
+              Surprise me
+            </button>
+          </header>
+          <div class="shelf-pulse-grid">
+            <a class="pulse-card pulse-card-rose" href="#hindi" data-route-link>
+              <span class="pulse-icon" aria-hidden="true">अ</span>
+              <span class="pulse-copy"><strong>Hindi classics</strong><small>${hindiCount} free editions</small></span>
+              <span class="pulse-go" aria-hidden="true">Explore <span>→</span></span>
+            </a>
+            <a class="pulse-card pulse-card-blue" href="#catalog" data-route-link>
+              <span class="pulse-icon" aria-hidden="true">✦</span>
+              <span class="pulse-copy"><strong>Live classics</strong><small>79,000+ public-domain books</small></span>
+              <span class="pulse-go" aria-hidden="true">Explore <span>→</span></span>
+            </a>
+            <a class="pulse-card pulse-card-green" href="#premium" data-route-link>
+              <span class="pulse-icon" aria-hidden="true">₹</span>
+              <span class="pulse-copy"><strong>Premium shelf</strong><small>Plans from ₹50</small></span>
+              <span class="pulse-go" aria-hidden="true">Explore <span>→</span></span>
+            </a>
+            <a class="pulse-card pulse-card-amber" href="${this.store.currentUser ? "#dashboard" : "#about"}" data-route-link>
+              <span class="pulse-icon" aria-hidden="true">◎</span>
+              <span class="pulse-copy"><strong>Reading room</strong><small>Notes, streaks &amp; certificates</small></span>
+              <span class="pulse-go" aria-hidden="true">Explore <span>→</span></span>
+            </a>
+          </div>
+        </section>
+      `;
+    }
+
+    readingRoomMarkup() {
+      const shelf = (count) => Array.from({ length: count }, (_, index) => `<span class="book-spine" style="--spine:${index}"></span>`).join("");
+      return `
+        <section class="reading-room" aria-labelledby="reading-room-title">
+          <div class="reading-room-copy">
+            <span class="hero-eyebrow">The reading room</span>
+            <h2 id="reading-room-title">A quieter corner for your next chapter.</h2>
+            <p>Keep your place across devices, collect streak badges, scribble private page notes, and turn three finished books into a verified certificate.</p>
+            <div class="hero-actions">
+              <a class="button" href="#catalog" data-route-link>Find your next book</a>
+              <a class="button button-secondary" href="#premium" data-route-link>See premium</a>
+            </div>
+          </div>
+          <div class="shelf-scene" aria-hidden="true">
+            <div class="shelf-glow"></div>
+            <div class="shelf-tier">${shelf(9)}<span class="shelf-plant"></span></div>
+            <div class="shelf-plank"></div>
+            <div class="shelf-tier shelf-tier-lower">${shelf(7)}<span class="shelf-stack"><i></i><i></i><i></i></span></div>
+            <div class="shelf-plank"></div>
+            <div class="shelf-floor"></div>
+          </div>
+        </section>
+      `;
+    }
+
+    libraryCtaMarkup() {
+      return `
+        <section class="library-cta" aria-labelledby="library-cta-title">
+          <span class="cta-orb cta-orb-one" aria-hidden="true"></span>
+          <span class="cta-orb cta-orb-two" aria-hidden="true"></span>
+          <div class="library-cta-copy">
+            <span>7-day reader challenge</span>
+            <h2 id="library-cta-title">Three books.<br>One certificate.</h2>
+            <p>Finish three books inside a week to unlock an Avid Reader certificate and a single-use premium discount.</p>
+          </div>
+          <div class="library-cta-actions">
+            ${this.store.currentUser
+              ? '<a class="button button-dark" href="#dashboard" data-route-link>Open my library</a>'
+              : '<button class="button button-dark" type="button" data-action="open-login">Start reading free</button>'}
+            <a class="button button-ghost" href="#about" data-route-link>How it works</a>
+          </div>
         </section>
       `;
     }
