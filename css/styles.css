@@ -7930,7 +7930,7 @@ button.milestone-card:hover {
   background: rgba(255, 255, 255, 0.22);
 }
 
-@media (min-width: 1181px) and (max-width: 1380px) {
+@media (min-width: 1181px) and (max-width: 1460px) {
   .header-left {
     gap: 12px;
   }
