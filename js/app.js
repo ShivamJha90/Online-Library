@@ -2749,6 +2749,9 @@
       if (!filter) return;
       if (filter.dataset.catalogFilter === "language") this.catalog.searchLanguage = filter.value;
       if (filter.dataset.catalogFilter === "sort") this.catalog.searchSort = filter.value;
+      // Keep the address bar in step with the filter immediately, not only
+      // when the network response lands.
+      this.updateCatalogUrl();
       const query = this.store.state.preferences.searchQuery.trim();
       if (query) {
         this.runSearch(query);
