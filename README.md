@@ -9,7 +9,8 @@
 ### Live catalog
 - Search **79,000+ Project Gutenberg editions** through the public [Gutendex](https://gutendex.com/) API.
 - Predictive search suggestions blending local history and live catalog results.
-- Language and sorting filters, paginated search with “Load more”.
+- Language and sorting filters that browse the catalog even without a search term, paginated results with “Load more”, and URL-synced `#catalog?lang=fr&sort=ascending` deep links.
+- **Instant language shelves.** Ten bundled shelves (English, French, German, Spanish, Italian, Portuguese, Dutch, Finnish, Swedish, Latin) paint immediately, keep the filter usable when Gutendex is slow, and are replaced by live results when they arrive.
 - Shareable certificate links (`#verify/<token>`), cover fallbacks, loading skeletons, and graceful API error states. Book share links are intentionally not offered: books are personal to the signed-in account.
 - Saved books keep a metadata snapshot so the collection still renders while the API is offline.
 - **Resilient shelves.** Requests retry once with a 7-second timeout, and successful results are cached in `localStorage`. If Gutendex is slow or unreachable, the storefront shows the saved shelf (or a bundled 12-book starter shelf) with a friendly notice and toast instead of a blank section or a bare “Retry”. The catalog also retries automatically when the browser comes back online or the tab becomes visible.
@@ -25,6 +26,7 @@
 - **Daylight** is the default interface: a light-blue library shell, a floating white sidebar card, an orange accent, white book cards and an illustrated bookshelf scene.
 - The header sun/moon button switches to the original **Midnight** palette; the choice is stored in `localStorage["scholarscroll-ui-theme"]` and applied before first paint so the shell never flashes the wrong theme.
 - Interactive storefront sections include gradient shelf cards ("Where do you want to wander today?"), a **Surprise me** random-book action, the reading-room bookshelf and an orange certificate call to action.
+- **Responsive navigation.** Up to 900 px the rail becomes a labelled bottom tab bar (Home, Books, Premium, हिंदी) with safe-area padding; signed-in members also get Saved and Settings. Between 901 and 1180 px signed-out visitors keep the icon rail, and wider screens use the header links. Book cards then show two columns with larger titles, and dashboard stat cards and quotes stack cleanly.
 - Reader paper themes (light, sepia, dark) are independent of the interface theme.
 
 ### Reader
