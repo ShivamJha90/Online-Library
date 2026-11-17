@@ -48,6 +48,17 @@
     }
   };
 
+  // Deterministic hue for generated fallback covers, so a book keeps the same
+  // jacket every time it appears without needing a remote image at all.
+  const coverHue = (seed = "book") => {
+    const text = String(seed);
+    let hash = 0;
+    for (let index = 0; index < text.length; index += 1) {
+      hash = (hash * 31 + text.charCodeAt(index)) % 360;
+    }
+    return hash;
+  };
+
   /**
    * Normalize an optional public base URL used by certificate QR codes. A phone
    * cannot open 127.0.0.1, so a LAN or hosted URL is the only way a scan can
@@ -1522,6 +1533,7 @@
       this.pendingReadKey = null;
       this.pendingCheckout = null;
       this.searchController = null;
+      this.browseController = null;
       this.debouncedApiSearch = debounce((query) => this.runSearch(query), 300);
       this.autocompleteItems = [];
       this.autocompleteIndex = -1;
@@ -1543,6 +1555,15 @@
         searchLanguage: "",
         searchSort: "relevance",
         lastQuery: "",
+        browseResults: [],
+        browseCount: 0,
+        browsePage: 1,
+        browseHasMore: false,
+        browseLoading: false,
+        browseLoadingMore: false,
+        browseError: null,
+        browseNotice: "",
+        browseLanguage: "",
         loadingPopular: true,
         loadingNewest: true,
         loadingSearch: false,
@@ -1587,7 +1608,12 @@
     init() {
       this.applyUiTheme();
       this.setupAutocomplete();
-      this.indexBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
+      const bundledCatalog = [
+        ...Config.PREMIUM_BOOKS,
+        ...(Config.HINDI_BOOKS || []),
+        ...Object.values(Config.LANGUAGE_SHELVES || {}).flatMap((shelf) => shelf.books || [])
+      ];
+      this.indexBooks(bundledCatalog);
       this.store.rememberBooks([...Config.PREMIUM_BOOKS, ...(Config.HINDI_BOOKS || [])]);
       this.elements.search.value = this.store.state.preferences.searchQuery;
       if (this.elements.footerYear) this.elements.footerYear.textContent = String(new Date().getFullYear());
@@ -2135,6 +2161,10 @@
       document.body.classList.toggle("public-mode", !user && !readerMode);
       document.body.classList.toggle("authenticated-mode", Boolean(user) && !readerMode);
       document.body.classList.toggle("admin-mode", user?.role === "admin" && !readerMode);
+      document.querySelectorAll("[data-home-link]").forEach((link) => {
+        link.setAttribute("href", user ? "#dashboard" : "#store");
+        link.setAttribute("aria-label", user ? "ScholarScroll dashboard" : "ScholarScroll home");
+      });
       this.elements.storageDot.classList.toggle("unavailable", this.store.persistenceAvailable === false);
       this.elements.storageDot.dataset.tooltip = this.store.persistenceAvailable === false ? "Temporary state" : "Saved locally";
 
@@ -2194,21 +2224,28 @@
 
     applyCatalogParams() {
       const params = this.router.query();
-      if (!params.has("q")) return;
       const query = params.get("q") || "";
       const language = params.get("lang") || "";
       const sort = params.get("sort") || "relevance";
-      const changed = query !== this.store.state.preferences.searchQuery
+      const changed = query !== this.store.state.preferences.searchQuery.trim()
         || language !== this.catalog.searchLanguage
         || sort !== this.catalog.searchSort;
       this.store.setSearchQuery(query);
       this.elements.search.value = query;
       this.catalog.searchLanguage = language;
       this.catalog.searchSort = sort;
-      if (query && changed) {
+      if (!changed) return;
+
+      this.searchController?.abort();
+      this.browseController?.abort();
+      if (query) {
         this.catalog.loadingSearch = true;
         this.catalog.searchError = null;
         this.runSearch(query);
+      } else if (language || sort !== "relevance") {
+        this.runBrowse();
+      } else {
+        this.clearBrowseState();
       }
     }
 
@@ -2464,6 +2501,55 @@
       }
     }
 
+    browseActive() {
+      return Boolean(this.catalog.searchLanguage) || this.catalog.searchSort !== "relevance";
+    }
+
+    catalogLanguageLabel(language = this.catalog.searchLanguage) {
+      const labels = {
+        "": "all languages",
+        en: "English",
+        fr: "French",
+        de: "German",
+        es: "Spanish",
+        it: "Italian",
+        pt: "Portuguese",
+        nl: "Dutch",
+        fi: "Finnish",
+        sv: "Swedish",
+        la: "Latin"
+      };
+      return labels[language] || "all languages";
+    }
+
+    catalogSortLabel(sort = this.catalog.searchSort) {
+      const labels = {
+        relevance: "best match",
+        popular: "most downloaded",
+        ascending: "oldest first",
+        descending: "newest first"
+      };
+      return labels[sort] || "best match";
+    }
+
+    // A small bundled shelf per language keeps language browsing instant and
+    // resilient when Gutendex is slow. Live results replace it when they land.
+    localBrowseBooks(language = this.catalog.searchLanguage, sort = this.catalog.searchSort) {
+      const shelves = Config.LANGUAGE_SHELVES || {};
+      const list = language
+        ? (shelves[language]?.books || [])
+        : Object.values(shelves).flatMap((shelf) => shelf.books || []);
+      return this.sortBrowseBooks(this.uniqueBooks(list), sort).slice(0, 64);
+    }
+
+    sortBrowseBooks(books, sort = this.catalog.searchSort) {
+      const sorted = [...books];
+      if (sort === "ascending") sorted.sort((first, second) => Number(first.id) - Number(second.id));
+      else if (sort === "descending") sorted.sort((first, second) => Number(second.id) - Number(first.id));
+      else sorted.sort((first, second) => Number(second.downloadCount) - Number(first.downloadCount));
+      return sorted;
+    }
+
     scheduleSearch(query) {
       this.debouncedApiSearch.cancel();
       this.searchController?.abort();
@@ -2475,10 +2561,15 @@
         this.catalog.searchCount = 0;
         this.catalog.loadingSearch = false;
         this.catalog.searchError = null;
-        this.refreshView();
+        if (this.browseActive()) this.runBrowse();
+        else this.refreshView();
         return;
       }
 
+      // A typed query takes over from any language/sort browse request.
+      this.browseController?.abort();
+      this.catalog.browseLoading = false;
+      this.catalog.browseLoadingMore = false;
       this.catalog.loadingSearch = true;
       this.catalog.searchError = null;
       this.refreshView();
@@ -2533,8 +2624,81 @@
     }
 
     loadMoreResults() {
-      if (!this.catalog.searchHasMore || this.catalog.loadingMore || !this.catalog.lastQuery) return;
-      this.runSearch(this.catalog.lastQuery, true);
+      if (this.store.state.preferences.searchQuery.trim()) {
+        if (!this.catalog.searchHasMore || this.catalog.loadingMore || !this.catalog.lastQuery) return;
+        this.runSearch(this.catalog.lastQuery, true);
+        return;
+      }
+      if (!this.catalog.browseHasMore || this.catalog.browseLoadingMore) return;
+      this.runBrowse(true);
+    }
+
+    async runBrowse(append = false) {
+      if (!this.browseActive()) {
+        this.clearBrowseState();
+        this.refreshView();
+        return;
+      }
+
+      const page = append ? this.catalog.browsePage + 1 : 1;
+      const language = this.catalog.searchLanguage;
+      const sort = this.catalog.searchSort;
+      this.browseController?.abort();
+      const requestController = new AbortController();
+      this.browseController = requestController;
+      if (append) this.catalog.browseLoadingMore = true;
+      else {
+        const sameLanguage = this.catalog.browseLanguage === language;
+        const local = sameLanguage && this.catalog.browseResults.length
+          ? this.sortBrowseBooks(this.catalog.browseResults, sort)
+          : this.localBrowseBooks(language, sort);
+        this.catalog.browseResults = local;
+        this.catalog.browseCount = local.length;
+        this.catalog.browsePage = 1;
+        this.catalog.browseHasMore = false;
+        this.catalog.browseLoading = true;
+        this.catalog.browseNotice = local.length
+          ? "Quick matches from the bundled shelf. Live results are loading."
+          : "";
+        this.catalog.browseLanguage = language;
+        if (local.length) this.indexBooks(local);
+      }
+      this.catalog.browseError = null;
+      this.refreshView();
+
+      try {
+        const result = await this.api.browse({ language, sort, page }, requestController.signal);
+        if (requestController !== this.browseController) return;
+        if (language !== this.catalog.searchLanguage || sort !== this.catalog.searchSort) return;
+        this.catalog.browseResults = append
+          ? this.uniqueBooks([...this.catalog.browseResults, ...result.books])
+          : result.books;
+        this.catalog.browseCount = result.count;
+        this.catalog.browsePage = page;
+        this.catalog.browseHasMore = Boolean(result.next);
+        this.catalog.browseError = null;
+        this.catalog.browseNotice = "";
+        this.catalog.browseLanguage = language;
+        this.indexBooks(result.books);
+        this.setApiStatus(true);
+        this.updateCatalogUrl();
+      } catch (error) {
+        if (error.name === "AbortError" || requestController !== this.browseController) return;
+        this.setApiStatus(false);
+        if (this.catalog.browseResults.length) {
+          this.catalog.browseError = null;
+          this.catalog.browseNotice = "The live catalog is slow right now, so these saved editions are shown instead. They open normally.";
+        } else {
+          this.catalog.browseError = error.message;
+        }
+        if (append) this.toast.show(error.message, "error");
+      } finally {
+        if (requestController === this.browseController) {
+          this.catalog.browseLoading = false;
+          this.catalog.browseLoadingMore = false;
+          this.refreshView();
+        }
+      }
     }
 
     updateCatalogUrl() {
@@ -2585,8 +2749,13 @@
       if (!filter) return;
       if (filter.dataset.catalogFilter === "language") this.catalog.searchLanguage = filter.value;
       if (filter.dataset.catalogFilter === "sort") this.catalog.searchSort = filter.value;
-      if (this.store.state.preferences.searchQuery.trim()) this.runSearch(this.store.state.preferences.searchQuery);
-      else {
+      const query = this.store.state.preferences.searchQuery.trim();
+      if (query) {
+        this.runSearch(query);
+      } else if (this.browseActive()) {
+        this.runBrowse();
+      } else {
+        this.clearBrowseState();
         this.updateCatalogUrl();
         this.refreshView();
       }
@@ -2605,7 +2774,9 @@
       const image = event.target;
       if (!(image instanceof HTMLImageElement) || !image.matches("[data-cover-image]")) return;
       image.hidden = true;
-      if (image.nextElementSibling?.matches("[data-cover-fallback]")) image.nextElementSibling.hidden = false;
+      const sibling = image.nextElementSibling?.matches("[data-cover-fallback]") ? image.nextElementSibling : null;
+      const fallback = sibling || image.closest(".cover-frame")?.querySelector("[data-cover-fallback]");
+      if (fallback) fallback.hidden = false;
     }
 
     handleStorageChange(event) {
@@ -2644,6 +2815,8 @@
         },
         "retry-api": () => this.loadLiveShelves(),
         "retry-search": () => this.runSearch(this.store.state.preferences.searchQuery),
+        "retry-browse": () => this.runBrowse(),
+        "clear-catalog-filters": () => this.resetCatalogFilters(),
         "clear-search": () => this.clearSearch(),
         "load-more": () => this.loadMoreResults(),
         "view-certificate": () => this.openCertificate(trigger.dataset.certificateId || null),
@@ -2683,6 +2856,28 @@
       }
     }
 
+    resetCatalogFilters() {
+      this.catalog.searchLanguage = "";
+      this.catalog.searchSort = "relevance";
+      this.clearBrowseState();
+      this.updateCatalogUrl();
+      this.refreshView();
+      this.elements.search.focus();
+    }
+
+    clearBrowseState() {
+      this.browseController?.abort();
+      this.catalog.browseResults = [];
+      this.catalog.browseCount = 0;
+      this.catalog.browsePage = 1;
+      this.catalog.browseHasMore = false;
+      this.catalog.browseLoading = false;
+      this.catalog.browseLoadingMore = false;
+      this.catalog.browseError = null;
+      this.catalog.browseNotice = "";
+      this.catalog.browseLanguage = "";
+    }
+
     clearSearch() {
       this.elements.search.value = "";
       this.store.setSearchQuery("");
@@ -2697,7 +2892,12 @@
       this.catalog.searchError = null;
       this.closeAutocomplete();
       this.updateCatalogUrl();
-      this.refreshView();
+      if (this.browseActive()) {
+        this.runBrowse();
+      } else {
+        this.clearBrowseState();
+        this.refreshView();
+      }
       this.elements.search.focus();
     }
 
@@ -3296,14 +3496,29 @@
 
     renderCatalog() {
       const query = this.store.state.preferences.searchQuery.trim();
+      const browsing = this.browseActive();
+      const languageLabel = this.catalogLanguageLabel();
+      const sortLabel = this.catalogSortLabel();
       const customBooks = this.store.currentUser ? this.store.state.customBooks : [];
       const combined = this.uniqueBooks([...customBooks, ...this.catalog.popular, ...this.catalog.newest]);
+      const heading = query
+        ? `Search results for “${escapeHTML(query)}”`
+        : browsing
+          ? this.catalog.searchLanguage
+            ? `${languageLabel} books`
+            : `Books sorted by ${sortLabel}`
+          : "Browse public-domain books";
+      const subtitle = query
+        ? (this.catalog.totalCount ? `${this.catalog.totalCount.toLocaleString()} records available through the public API.` : "Real-time metadata from Project Gutenberg.")
+        : browsing
+          ? `${this.catalog.browseCount ? this.catalog.browseCount.toLocaleString() : "Live"} ${pluralize(this.catalog.browseCount, "record")} from Gutendex · ${sortLabel}.`
+          : (this.catalog.totalCount ? `${this.catalog.totalCount.toLocaleString()} records available through the public API.` : "Real-time metadata from Project Gutenberg.");
       return `
         <section class="content-page live-catalog-page">
-          <header class="page-intro"><div><p class="page-kicker">Live Gutendex database</p><h1>${query ? `Search results for “${escapeHTML(query)}”` : "Browse public-domain books"}</h1><p>${this.catalog.totalCount ? `${this.catalog.totalCount.toLocaleString()} records available through the public API.` : "Real-time metadata from Project Gutenberg."}</p></div>${query ? '<button class="button button-secondary button-small" type="button" data-action="clear-search">Clear search</button>' : ""}</header>
+          <header class="page-intro"><div><p class="page-kicker">Live Gutendex database</p><h1>${heading}</h1><p>${subtitle}</p></div>${query ? '<button class="button button-secondary button-small" type="button" data-action="clear-search">Clear search</button>' : browsing ? '<button class="button button-secondary button-small" type="button" data-action="clear-catalog-filters">Reset filters</button>' : ""}</header>
           ${this.catalogNoticeMarkup()}
           ${this.renderCatalogFilters(query)}
-          ${query ? this.renderSearchGrid() : `<div class="live-book-grid">${combined.length ? combined.map((book) => this.liveBookCard(book)).join("") : this.loadingCards(12)}</div>`}
+          ${query || browsing ? this.renderCatalogResults() : `<div class="live-book-grid">${combined.length ? combined.map((book) => this.liveBookCard(book)).join("") : this.loadingCards(12)}</div>`}
         </section>
       `;
     }
@@ -3318,12 +3533,44 @@
         ["relevance", "Best match"], ["popular", "Most downloaded"],
         ["ascending", "Oldest first"], ["descending", "Newest first"]
       ];
+      const browsing = this.browseActive();
+      const hint = query
+        ? "Refine these results"
+        : browsing
+          ? `Browsing ${this.catalog.searchLanguage ? this.catalogLanguageLabel() : "all languages"} · ${this.catalogSortLabel()}`
+          : "Pick a language or sort order to browse the live catalog";
       return `
-        <div class="catalog-filter-bar" role="group" aria-label="Search filters">
-          <span class="catalog-filter-hint">${query ? "Refine these results" : "Filters apply to live searches"}</span>
+        <div class="catalog-filter-bar" role="group" aria-label="Catalog filters">
+          <span class="catalog-filter-hint">${hint}</span>
           <label>Language<select data-catalog-filter="language">${languages.map(([value, label]) => `<option value="${value}" ${this.catalog.searchLanguage === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
           <label>Sort by<select data-catalog-filter="sort">${sorts.map(([value, label]) => `<option value="${value}" ${this.catalog.searchSort === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
         </div>
+      `;
+    }
+
+    renderCatalogResults() {
+      return this.store.state.preferences.searchQuery.trim() ? this.renderSearchGrid() : this.renderBrowseGrid();
+    }
+
+    renderBrowseGrid() {
+      const languageLabel = this.catalogLanguageLabel();
+      const sortLabel = this.catalogSortLabel();
+      if (this.catalog.browseLoading && !this.catalog.browseResults.length) {
+        return this.loadingState(`Loading ${languageLabel} books, ${sortLabel}…`);
+      }
+      if (this.catalog.browseError) return this.errorState(this.catalog.browseError, {
+        action: "retry-browse",
+        hint: "Browsing needs a live connection. You can still open saved books and the premium shelf."
+      });
+      const results = this.catalog.browseResults;
+      const notice = this.catalog.browseNotice
+        ? `<p class="browse-notice" role="status"><span aria-hidden="true">◌</span> ${escapeHTML(this.catalog.browseNotice)}</p>`
+        : "";
+      return `
+        ${notice}
+        <div class="search-summary"><span>${this.catalog.browseLoading ? `${results.length.toLocaleString()} quick ${pluralize(results.length, "match", "matches")}` : `${this.catalog.browseCount.toLocaleString()} ${pluralize(this.catalog.browseCount, "record")}`} · ${languageLabel}</span><span>Showing ${results.length.toLocaleString()}</span></div>
+        <div class="live-book-grid">${results.length ? results.map((book) => this.liveBookCard(book)).join("") : this.emptyState(`No ${languageLabel} books matched this sort order. Try another language or reset the filters.`)}</div>
+        ${this.catalog.browseLoading ? '<p class="results-end">Checking the live catalog…</p>' : this.catalog.browseHasMore ? `<div class="load-more-row"><button class="button button-secondary" type="button" data-action="load-more" ${this.catalog.browseLoadingMore ? "disabled" : ""}>${this.catalog.browseLoadingMore ? "Loading more…" : "Load more books"}</button></div>` : results.length ? '<p class="results-end">End of results for this browse.</p>' : ""}
       `;
     }
 
@@ -3365,8 +3612,22 @@
 
     coverMarkup(book, className) {
       const cover = safeUrl(book.coverUrl);
-      const fallbackText = escapeHTML(book.title.split(/\s+/).slice(0, 3).join(" "));
-      return `${cover ? `<img class="${className}" data-cover-image src="${escapeHTML(cover)}" alt="Cover of ${escapeHTML(book.title)}" loading="lazy">` : ""}<span class="live-cover-fallback" data-cover-fallback ${cover ? "hidden" : ""}>${fallbackText}</span>`;
+      const title = book.title || "Untitled";
+      const shortTitle = title.split(/\s+/).slice(0, 5).join(" ");
+      const author = book.author || "Public domain";
+      const hue = coverHue(book.key || title);
+      return `
+        <span class="cover-frame">
+          <span class="live-cover-fallback cover-plate" data-cover-fallback style="--cover-hue:${hue}" aria-hidden="true">
+            <span class="cover-plate-frame">
+              <span class="cover-plate-mark">S</span>
+              <strong>${escapeHTML(shortTitle)}</strong>
+              <em>${escapeHTML(author)}</em>
+            </span>
+          </span>
+          ${cover ? `<img class="${className} cover-plate-image" data-cover-image src="${escapeHTML(cover)}" alt="Cover of ${escapeHTML(title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ""}
+        </span>
+      `;
     }
 
     renderDashboard() {
@@ -3388,6 +3649,8 @@
             <div><span>${formatDate(new Date())}</span><h1>Welcome back, ${escapeHTML(user.name.split(" ")[0])}</h1><p>${streak.readToday ? "You have read today, so your streak is safe. Keep the momentum going." : "Read a few pages today to keep your reading streak alive."}</p></div>
             <a class="button" href="#catalog" data-route-link>Explore books</a>
           </header>
+
+          ${this.dashboardQuotesMarkup()}
 
           <section class="stat-strip" aria-label="Reading statistics">
             ${this.statCard("Books completed", completed, "book")}
@@ -3417,6 +3680,21 @@
             </aside>
           </div>
         </section>
+      `;
+    }
+
+    dashboardQuotesMarkup() {
+      const quotes = Config.DASHBOARD_QUOTES || [];
+      if (!quotes.length) return "";
+      return `
+        <div class="dashboard-quotes" aria-label="Reading inspiration">
+          ${quotes.map((quote) => `
+            <figure class="quote-card">
+              <blockquote>${escapeHTML(quote.text)}</blockquote>
+              <figcaption><span>${escapeHTML(quote.author)}</span></figcaption>
+            </figure>
+          `).join("")}
+        </div>
       `;
     }
 

@@ -158,6 +158,19 @@
       return this.request(parameters, signal);
     }
 
+    // Browse the catalog without a search term. Gutendex accepts language and
+    // sort parameters on their own, which lets the filter bar work as a real
+    // browsing control instead of only refining an existing query.
+    browse(options = {}, signal = null) {
+      const parameters = {};
+      const language = String(options.language || "").trim();
+      const sort = String(options.sort || "").trim();
+      if (language) parameters.languages = language;
+      if (sort && sort !== "relevance") parameters.sort = sort;
+      if (Number(options.page) > 1) parameters.page = Number(options.page);
+      return this.request(parameters, signal);
+    }
+
     byIds(ids, signal = null) {
       const normalizedIds = [...new Set(ids.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
       if (!normalizedIds.length) return Promise.resolve({ count: 0, next: null, previous: null, books: [] });
@@ -177,12 +190,19 @@
       const summary = rawBook.summaries?.[0]
         ?.replace(/\s*\(This is an automatically generated summary\.\)\s*$/i, "")
         || `A public-domain title by ${authors[0]}, available through Project Gutenberg.`;
+      // Gutendex occasionally exposes raw MARC subfield markers ($b, $c) in
+      // titles. Strip them so cards and generated covers read naturally.
+      const title = String(rawBook.title || "Untitled")
+        .replace(/\s*\$(?:[a-z])\s*/gi, " ")
+        .replace(/\s*[;,]\s*$/, "")
+        .replace(/\s+/g, " ")
+        .trim() || "Untitled";
 
       return {
         key: `gutenberg-${rawBook.id}`,
         id: Number(rawBook.id),
         source: "gutendex",
-        title: String(rawBook.title || "Untitled"),
+        title,
         author: authors[0],
         authors,
         category: shelf || subject || "General collection",

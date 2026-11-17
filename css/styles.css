@@ -3112,6 +3112,110 @@ body.reader-mode {
   text-align: center;
 }
 
+/* Generated jacket art. It sits behind the remote cover and is always painted,
+   so a slow or failed Gutenberg image never leaves an empty card. */
+.cover-frame {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  place-items: center;
+}
+
+.cover-frame > * {
+  grid-area: 1 / 1;
+}
+
+[data-cover-image][hidden],
+[data-cover-fallback][hidden] {
+  display: none !important;
+}
+
+.cover-plate-image {
+  position: relative;
+  z-index: 2;
+}
+
+.cover-plate {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 74% 10%, hsla(var(--cover-hue, 210), 68%, 74%, 0.42), transparent 58%),
+    linear-gradient(155deg, hsl(var(--cover-hue, 210), 44%, 31%), hsl(calc(var(--cover-hue, 210) + 28), 48%, 15%));
+  box-shadow: 0 13px 27px rgba(0, 0, 0, 0.35);
+  color: #f8f4e8;
+}
+
+.cover-plate::before {
+  position: absolute;
+  inset: 0 auto 0 9%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  content: "";
+}
+
+.cover-plate::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 38%, rgba(0, 0, 0, 0.16));
+  content: "";
+  pointer-events: none;
+}
+
+.cover-plate-frame {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  width: 100%;
+  text-align: center;
+}
+
+.cover-plate-mark {
+  display: grid;
+  width: 1.9em;
+  height: 1.9em;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.cover-plate strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.32;
+  text-wrap: balance;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.cover-plate em {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba(248, 244, 232, 0.72);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.58em;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .reader-format {
   position: absolute;
   z-index: 3;
@@ -3149,14 +3253,15 @@ body.reader-mode {
 }
 
 .live-book-copy h3 {
-  display: -webkit-box;
-  min-height: 34px;
+  display: block;
+  height: 2.72em;
   overflow: hidden;
   margin-bottom: 3px;
   font-size: 0.68rem;
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .live-book-copy > p {
@@ -5020,6 +5125,40 @@ button.milestone-card:hover {
   font-weight: 600;
 }
 
+.browse-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid rgba(242, 201, 76, 0.22);
+  border-radius: 9px;
+  background: rgba(242, 201, 76, 0.07);
+  color: var(--text-soft);
+  font-size: 0.58rem;
+  line-height: 1.5;
+}
+
+.browse-notice span {
+  color: var(--yellow);
+  font-size: 0.8rem;
+  animation: browse-spin 1.6s linear infinite;
+}
+
+@keyframes browse-spin {
+  to { transform: rotate(360deg); }
+}
+
+:root[data-theme="daylight"] .browse-notice {
+  border-color: rgba(207, 63, 14, 0.2);
+  background: rgba(240, 138, 36, 0.08);
+  color: #34506f;
+}
+
+:root[data-theme="daylight"] .browse-notice span {
+  color: #c4470f;
+}
+
 .catalog-filter-bar label {
   display: flex;
   align-items: center;
@@ -5596,7 +5735,7 @@ button.milestone-card:hover {
 
 @media (max-width: 430px) {
   .stat-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .badge-award-footer,
@@ -5604,6 +5743,12 @@ button.milestone-card:hover {
     align-items: center;
     flex-direction: column;
     gap: 10px;
+  }
+}
+
+@media (max-width: 340px) {
+  .stat-strip {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -8117,4 +8262,274 @@ button.milestone-card:hover {
 :root[data-theme="daylight"] .checkout-note,
 :root[data-theme="daylight"] .checkout-intro {
   color: #6c809d;
+}
+@media (max-width: 900px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .icon-sidebar,
+  :root[data-theme="daylight"] .icon-sidebar {
+    inset: auto 0 0 0;
+    display: flex;
+    width: 100%;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    flex-direction: row;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  :root[data-theme="daylight"] .icon-sidebar {
+    background: #ffffff;
+    box-shadow: 0 -12px 30px rgba(31, 71, 131, 0.12);
+  }
+
+  .app-frame,
+  .public-mode .app-frame {
+    margin-left: 0;
+  }
+
+  .top-header {
+    left: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    padding-inline: 16px;
+  }
+
+  .header-navigation {
+    display: none;
+  }
+
+  .sidebar-logo,
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .sidebar-link::after {
+    display: none;
+  }
+
+  /* Public visitors need navigation too: the header links are hidden on
+     small screens, so the rail becomes a labelled bottom tab bar. */
+  .public-mode .icon-sidebar {
+    display: flex;
+  }
+
+  .public-mode .sidebar-link[href="#bookmarks"],
+  .public-mode .sidebar-link[href="#settings"] {
+    display: none;
+  }
+
+  .sidebar-nav,
+  :root[data-theme="daylight"] .sidebar-nav {
+    display: flex;
+    width: 100%;
+    max-width: 560px;
+    justify-content: space-around;
+    gap: 2px;
+    margin: 0;
+    padding-inline: 6px;
+  }
+
+  .sidebar-link {
+    display: flex;
+    width: auto;
+    height: 54px;
+    min-width: 44px;
+    max-width: 92px;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 11px;
+  }
+
+  .sidebar-link svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .sidebar-link::before {
+    color: var(--muted);
+    content: attr(data-mobile-label);
+    font-size: 0.46rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    transition: color 160ms ease;
+  }
+
+  .sidebar-link.active::before {
+    color: #151a22;
+  }
+
+  .app-frame,
+  .public-mode .app-frame {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 650px) {
+  .site-footer {
+    margin-bottom: 4px;
+  }
+
+  .dashboard-quotes {
+    grid-template-columns: 1fr;
+  }
+
+  .search-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .catalog-filter-bar select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .load-more-row .button {
+    width: 100%;
+  }
+}
+
+:root[data-theme="daylight"] .sidebar-link::before {
+  color: #6c809d;
+}
+
+:root[data-theme="daylight"] .sidebar-link.active::before {
+  color: #151a22;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  /* Header links are hidden in this range, so public visitors keep the icon
+     rail instead of losing navigation entirely. */
+  .public-mode .icon-sidebar {
+    display: flex;
+  }
+
+  .public-mode .sidebar-link[href="#bookmarks"],
+  .public-mode .sidebar-link[href="#settings"] {
+    display: none;
+  }
+
+  .public-mode .app-frame {
+    margin-left: var(--sidebar-width);
+  }
+
+  .public-mode .top-header {
+    left: var(--sidebar-width);
+  }
+
+  .public-mode .network-banner {
+    left: var(--sidebar-width);
+  }
+}
+
+/* Dashboard quote cards */
+.dashboard-quotes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.quote-card {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 19px 20px 17px 54px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 0 0, rgba(242, 201, 76, 0.1), transparent 55%),
+    var(--panel);
+}
+
+.quote-card::before {
+  position: absolute;
+  top: 2px;
+  left: 16px;
+  color: var(--yellow);
+  content: "\201C";
+  font-family: "Merriweather", Georgia, serif;
+  font-size: 2.6rem;
+  line-height: 1;
+  opacity: 0.65;
+}
+
+.quote-card blockquote {
+  margin: 0;
+  color: var(--text-soft);
+  font-family: "Merriweather", Georgia, serif;
+  font-size: 0.72rem;
+  line-height: 1.62;
+}
+
+.quote-card figcaption {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 0.52rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.quote-card figcaption span {
+  color: var(--yellow);
+}
+
+:root[data-theme="daylight"] .quote-card {
+  border-color: rgba(23, 58, 110, 0.1);
+  background:
+    radial-gradient(circle at 0 0, rgba(240, 138, 36, 0.14), transparent 58%),
+    #ffffff;
+  box-shadow: 0 12px 24px rgba(31, 71, 131, 0.07);
+}
+
+:root[data-theme="daylight"] .quote-card blockquote {
+  color: #223d5e;
+}
+
+:root[data-theme="daylight"] .quote-card figcaption {
+  color: #6c809d;
+}
+
+:root[data-theme="daylight"] .quote-card figcaption span {
+  color: #c4470f;
+}
+
+/* Mobile stacking must come after the base quote grid so it wins the cascade */
+@media (max-width: 650px) {
+  .dashboard-quotes {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-card {
+    padding: 17px 18px 15px 50px;
+  }
+
+  .live-book-copy > span {
+    font-size: 0.56rem;
+  }
+
+  .live-book-copy h3 {
+    height: 2.72em;
+    font-size: 0.8rem;
+  }
+
+  .live-book-copy > p {
+    font-size: 0.64rem;
+  }
+
+  .live-book-copy small {
+    font-size: 0.56rem;
+  }
+
+  .live-book-copy > div button {
+    font-size: 0.6rem;
+  }
 }

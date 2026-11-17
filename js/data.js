@@ -932,6 +932,2341 @@
     starterBook(174, "The Picture of Dorian Gray", "Oscar Wilde", "Gothic", 29000)
   ];
 
+  const languageShelves = {
+    "en": {
+      "label": "English",
+      "count": 63390,
+      "books": [
+        {
+          "key": "gutenberg-1342",
+          "id": 1342,
+          "source": "gutendex",
+          "title": "Pride and Prejudice",
+          "author": "Jane Austen",
+          "authors": [
+            "Jane Austen"
+          ],
+          "category": "Best Books Ever Listings",
+          "subjects": [
+            "Courtship -- Fiction",
+            "Domestic fiction",
+            "England -- Fiction",
+            "Love stories"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Jane Austen, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/1342/pg1342.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/1342",
+          "downloadCount": 208430,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/1342.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-84",
+          "id": 84,
+          "source": "gutendex",
+          "title": "Frankenstein; or, The modern Prometheus",
+          "author": "Mary Wollstonecraft Shelley",
+          "authors": [
+            "Mary Wollstonecraft Shelley"
+          ],
+          "category": "British Literature",
+          "subjects": [
+            "Frankenstein's monster (Fictitious character) -- Fiction",
+            "Frankenstein, Victor (Fictitious character) -- Fiction",
+            "Gothic fiction",
+            "Horror tales"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Mary Wollstonecraft Shelley, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/84/pg84.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/84",
+          "downloadCount": 182729,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/84.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-2701",
+          "id": 2701,
+          "source": "gutendex",
+          "title": "Moby Dick; Or, The Whale",
+          "author": "Herman Melville",
+          "authors": [
+            "Herman Melville"
+          ],
+          "category": "Best Books Ever Listings",
+          "subjects": [
+            "Adventure stories",
+            "Ahab, Captain (Fictitious character) -- Fiction",
+            "Mentally ill -- Fiction",
+            "Psychological fiction"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Herman Melville, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/2701/pg2701.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/2701",
+          "downloadCount": 172569,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/2701.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-11",
+          "id": 11,
+          "source": "gutendex",
+          "title": "Alice's Adventures in Wonderland",
+          "author": "Lewis Carroll",
+          "authors": [
+            "Lewis Carroll"
+          ],
+          "category": "British Literature",
+          "subjects": [
+            "Alice (Fictitious character from Carroll) -- Juvenile fiction",
+            "Children's stories",
+            "Fantasy fiction",
+            "Imaginary places -- Juvenile fiction"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Lewis Carroll, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/11/pg11.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/11",
+          "downloadCount": 121623,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/11.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-1661",
+          "id": 1661,
+          "source": "gutendex",
+          "title": "The Adventures of Sherlock Holmes",
+          "author": "Arthur Conan Doyle",
+          "authors": [
+            "Arthur Conan Doyle"
+          ],
+          "category": "Banned Books from Anne Haight's list",
+          "subjects": [
+            "Detective and mystery stories, English",
+            "Holmes, Sherlock (Fictitious character) -- Fiction",
+            "Private investigators -- England -- Fiction"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Arthur Conan Doyle, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/1661",
+          "downloadCount": 96353,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/1661.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-37683",
+          "id": 37683,
+          "source": "gutendex",
+          "title": "Chambers's Twentieth Century Dictionary (part 1 of 4: A-D)",
+          "author": "Unknown author",
+          "authors": [
+            "Unknown author"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "English language -- Dictionaries"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Unknown author, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/37683/pg37683.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/37683",
+          "downloadCount": 94005,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/37683.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-1513",
+          "id": 1513,
+          "source": "gutendex",
+          "title": "Romeo and Juliet",
+          "author": "William Shakespeare",
+          "authors": [
+            "William Shakespeare"
+          ],
+          "category": "British Literature",
+          "subjects": [
+            "Conflict of generations -- Drama",
+            "Juliet (Fictitious character) -- Drama",
+            "Romeo (Fictitious character) -- Drama",
+            "Tragedies (Drama)"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by William Shakespeare, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/1513/pg1513.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/1513",
+          "downloadCount": 81893,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/1513.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-345",
+          "id": 345,
+          "source": "gutendex",
+          "title": "Dracula",
+          "author": "Bram Stoker",
+          "authors": [
+            "Bram Stoker"
+          ],
+          "category": "British Literature",
+          "subjects": [
+            "Dracula, Count (Fictitious character) -- Fiction",
+            "Epistolary fiction",
+            "Gothic fiction",
+            "Horror tales"
+          ],
+          "languages": [
+            "en"
+          ],
+          "summary": "An English public-domain title by Bram Stoker, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/345/pg345.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/345",
+          "downloadCount": 78131,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/345.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "fr": {
+      "label": "French",
+      "count": 4269,
+      "books": [
+        {
+          "key": "gutenberg-78027",
+          "id": 78027,
+          "source": "gutendex",
+          "title": "Les enchantements de la forêt",
+          "author": "André Theuriet",
+          "authors": [
+            "André Theuriet"
+          ],
+          "category": "Natural history",
+          "subjects": [
+            "Natural history -- Outdoor books"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by André Theuriet, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78027/pg78027.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78027",
+          "downloadCount": 47001,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78027.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-62215",
+          "id": 62215,
+          "source": "gutendex",
+          "title": "Le Fantôme de l'Opéra",
+          "author": "Gaston Leroux",
+          "authors": [
+            "Gaston Leroux"
+          ],
+          "category": "Crime, Thrillers and Mystery",
+          "subjects": [
+            "Composers -- Fiction",
+            "French fiction -- 20th century",
+            "Horror tales",
+            "Musical fiction"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Gaston Leroux, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/62215/pg62215.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/62215",
+          "downloadCount": 38259,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/62215.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78041",
+          "id": 78041,
+          "source": "gutendex",
+          "title": "En pays lointain",
+          "author": "Jack London",
+          "authors": [
+            "Jack London"
+          ],
+          "category": "Adventure stories, American",
+          "subjects": [
+            "Adventure stories, American -- Translations into French",
+            "Gold mines and mining -- Fiction",
+            "Klondike River Valley (Yukon) -- Fiction",
+            "Yukon River Valley (Yukon and Alaska) -- Fiction"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Jack London, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78041/pg78041.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78041",
+          "downloadCount": 24825,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78041.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78064",
+          "id": 78064,
+          "source": "gutendex",
+          "title": "Lucifer : roman moderne",
+          "author": "Maurice Magre",
+          "authors": [
+            "Maurice Magre"
+          ],
+          "category": "French fiction",
+          "subjects": [
+            "French fiction -- 20th century"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Maurice Magre, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78064/pg78064.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78064",
+          "downloadCount": 24659,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78064.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78074",
+          "id": 78074,
+          "source": "gutendex",
+          "title": "Chroniques de J. Froissart, tome 09/13 : 1377-1380 (Depuis la prise de Bergerac jusqu'à la mort de Charles V)",
+          "author": "Jean Froissart",
+          "authors": [
+            "Jean Froissart"
+          ],
+          "category": "Burgundy (France)",
+          "subjects": [
+            "Burgundy (France) -- History",
+            "Europe -- History -- 476-1492",
+            "Flanders -- History",
+            "France -- History -- House of Valois, 1328-1589"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Jean Froissart, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78074/pg78074.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78074",
+          "downloadCount": 24510,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78074.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78063",
+          "id": 78063,
+          "source": "gutendex",
+          "title": "Le jeune Européen",
+          "author": "Pierre Drieu La Rochelle",
+          "authors": [
+            "Pierre Drieu La Rochelle"
+          ],
+          "category": "French essays",
+          "subjects": [
+            "French essays"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Pierre Drieu La Rochelle, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78063/pg78063.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78063",
+          "downloadCount": 24508,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78063.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78069",
+          "id": 78069,
+          "source": "gutendex",
+          "title": "Deux générations",
+          "author": "Tolstoy, Leo, graf",
+          "authors": [
+            "Tolstoy, Leo, graf"
+          ],
+          "category": "Country life",
+          "subjects": [
+            "Country life -- Russia -- Fiction",
+            "Fathers and sons -- Fiction",
+            "Hussars -- Fiction",
+            "Russia -- Social life and customs -- 19th century -- Fiction"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Tolstoy, Leo, graf, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78069/pg78069.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78069",
+          "downloadCount": 24490,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78069.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78021",
+          "id": 78021,
+          "source": "gutendex",
+          "title": "L'imposture",
+          "author": "Georges Bernanos",
+          "authors": [
+            "Georges Bernanos"
+          ],
+          "category": "Catholic Church",
+          "subjects": [
+            "Catholic Church -- Clergy -- Fiction",
+            "Paris (France) -- Fiction",
+            "Religious fiction"
+          ],
+          "languages": [
+            "fr"
+          ],
+          "summary": "A French public-domain title by Georges Bernanos, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78021/pg78021.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78021",
+          "downloadCount": 24441,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78021.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "de": {
+      "label": "German",
+      "count": 2483,
+      "books": [
+        {
+          "key": "gutenberg-78079",
+          "id": 78079,
+          "source": "gutendex",
+          "title": "Allgemeine Physiologie",
+          "author": "Max Verworn",
+          "authors": [
+            "Max Verworn"
+          ],
+          "category": "Physiology, Comparative",
+          "subjects": [
+            "Physiology, Comparative"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Max Verworn, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78079/pg78079.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78079",
+          "downloadCount": 24849,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78079.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78026",
+          "id": 78026,
+          "source": "gutendex",
+          "title": "Skizzen einer Fußreise durch Oesterreich, Steiermark, Kärnthen, Salzburg, Berchtesgaden, Tirol und Baiern nach Wien, : nebst einer romantisch pittoresken Darstellung mehrerer Ritterburgen und ihrer Volkssagen, Gebirgsgegenden und Eisglätscher auf dieser Wanderung, unternommen im Jahre 1825 von Joseph Kyselak. (2/2)",
+          "author": "Josef Kyselak",
+          "authors": [
+            "Josef Kyselak"
+          ],
+          "category": "Austria",
+          "subjects": [
+            "Austria -- Description and travel",
+            "Berchtesgaden (Germany) -- Description and travel"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Josef Kyselak, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78026/pg78026.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78026",
+          "downloadCount": 24829,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78026.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78125",
+          "id": 78125,
+          "source": "gutendex",
+          "title": "Liebe ist ewig : Roman",
+          "author": "Wilhelm von Polenz",
+          "authors": [
+            "Wilhelm von Polenz"
+          ],
+          "category": "German fiction",
+          "subjects": [
+            "German fiction -- 20th century"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Wilhelm von Polenz, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78125/pg78125.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78125",
+          "downloadCount": 24517,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78125.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78056",
+          "id": 78056,
+          "source": "gutendex",
+          "title": "Urwald",
+          "author": "R. H. (Raoul Heinrich) Francé",
+          "authors": [
+            "R. H. (Raoul Heinrich) Francé"
+          ],
+          "category": "Forests and forestry",
+          "subjects": [
+            "Forests and forestry -- Tropics",
+            "Rain forests"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by R. H. (Raoul Heinrich) Francé, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78056/pg78056.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78056",
+          "downloadCount": 24205,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78056.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78030",
+          "id": 78030,
+          "source": "gutendex",
+          "title": "Kloster Himmelpforte : Geschichtliches Drama in 4 Akten",
+          "author": "Robert Falke",
+          "authors": [
+            "Robert Falke"
+          ],
+          "category": "Historical drama",
+          "subjects": [
+            "Historical drama",
+            "Luther, Martin, 1483-1546 -- Drama"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Robert Falke, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78030/pg78030.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78030",
+          "downloadCount": 24114,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78030.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-22367",
+          "id": 22367,
+          "source": "gutendex",
+          "title": "Die Verwandlung",
+          "author": "Franz Kafka",
+          "authors": [
+            "Franz Kafka"
+          ],
+          "category": "German Literature",
+          "subjects": [
+            "Metamorphosis -- Fiction",
+            "Psychological fiction"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Franz Kafka, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/22367/pg22367.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/22367",
+          "downloadCount": 15564,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/22367.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-66452",
+          "id": 66452,
+          "source": "gutendex",
+          "title": "Die Liebe: Novelle",
+          "author": "Hans Kaltneker",
+          "authors": [
+            "Hans Kaltneker"
+          ],
+          "category": "German Literature",
+          "subjects": [
+            "Austrian fiction -- 20th century"
+          ],
+          "languages": [
+            "de"
+          ],
+          "summary": "A German public-domain title by Hans Kaltneker, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/66452/pg66452.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/66452",
+          "downloadCount": 14525,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/66452.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-5740",
+          "id": 5740,
+          "source": "gutendex",
+          "title": "Tractatus Logico-Philosophicus",
+          "author": "Ludwig Wittgenstein",
+          "authors": [
+            "Ludwig Wittgenstein"
+          ],
+          "category": "DE Sachbuch",
+          "subjects": [
+            "Language and languages -- Philosophy",
+            "Logic, Symbolic and mathematical"
+          ],
+          "languages": [
+            "de",
+            "en"
+          ],
+          "summary": "A German public-domain title by Ludwig Wittgenstein, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/5740/pg5740.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/5740",
+          "downloadCount": 13240,
+          "copyright": false,
+          "reader": null
+        }
+      ]
+    },
+    "es": {
+      "label": "Spanish",
+      "count": 923,
+      "books": [
+        {
+          "key": "gutenberg-61851",
+          "id": 61851,
+          "source": "gutendex",
+          "title": "El crimen y el castigo",
+          "author": "Fyodor Dostoyevsky",
+          "authors": [
+            "Fyodor Dostoyevsky"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Crime -- Psychological aspects -- Fiction",
+            "Detective and mystery stories",
+            "Murder -- Fiction",
+            "Psychological fiction"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Fyodor Dostoyevsky, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/61851/pg61851.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/61851",
+          "downloadCount": 29958,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/61851.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78068",
+          "id": 78068,
+          "source": "gutendex",
+          "title": "Los miserables - Tomo 2 (de 2)",
+          "author": "Victor Hugo",
+          "authors": [
+            "Victor Hugo"
+          ],
+          "category": "Epic literature",
+          "subjects": [
+            "Epic literature",
+            "Ex-convicts -- Fiction",
+            "Historical fiction",
+            "Orphans -- Fiction"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Victor Hugo, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78068/pg78068.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78068",
+          "downloadCount": 25344,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78068.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78052",
+          "id": 78052,
+          "source": "gutendex",
+          "title": "Andanzas y visiones españolas",
+          "author": "Miguel de Unamuno",
+          "authors": [
+            "Miguel de Unamuno"
+          ],
+          "category": "Spain",
+          "subjects": [
+            "Spain -- Description and travel"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Miguel de Unamuno, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78052/pg78052.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78052",
+          "downloadCount": 24924,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78052.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-2000",
+          "id": 2000,
+          "source": "gutendex",
+          "title": "Don Quijote",
+          "author": "Miguel de Cervantes Saavedra",
+          "authors": [
+            "Miguel de Cervantes Saavedra"
+          ],
+          "category": "6 Best Loved Spanish Literary Classics",
+          "subjects": [
+            "Knights and knighthood -- Spain -- Fiction",
+            "Picaresque literature",
+            "Romances",
+            "Spain -- Social life and customs -- 16th century -- Fiction"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Miguel de Cervantes Saavedra, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/2000/pg2000.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/2000",
+          "downloadCount": 23030,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/2000.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-58221",
+          "id": 58221,
+          "source": "gutendex",
+          "title": "La Odisea",
+          "author": "Homer",
+          "authors": [
+            "Homer"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Epic poetry, Greek -- Translations into Spanish",
+            "Odysseus, King of Ithaca (Mythological character)"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Homer, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/58221/pg58221.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/58221",
+          "downloadCount": 7904,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/58221.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-21144",
+          "id": 21144,
+          "source": "gutendex",
+          "title": "Las Fábulas de Esopo, Vol. 03",
+          "author": "Aesop",
+          "authors": [
+            "Aesop",
+            "George Fyler Townsend"
+          ],
+          "category": "Fables, Greek",
+          "subjects": [
+            "Fables, Greek -- Translations into Spanish"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Aesop, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/21144/pg21144.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/21144",
+          "downloadCount": 7219,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/files/21144/21144-readme.txt",
+            "mimeType": "text/plain; charset=us-ascii"
+          }
+        },
+        {
+          "key": "gutenberg-20738",
+          "id": 20738,
+          "source": "gutendex",
+          "title": "Diccionario Ingles-Español-Tagalog: Con partes de la oracion y pronunciacion figurada",
+          "author": "Sofronio G. Calderón",
+          "authors": [
+            "Sofronio G. Calderón"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "English language -- Dictionaries -- Polyglot",
+            "English language -- Dictionaries -- Spanish",
+            "English language -- Dictionaries -- Tagalog"
+          ],
+          "languages": [
+            "en",
+            "es",
+            "tl"
+          ],
+          "summary": "A Spanish public-domain title by Sofronio G. Calderón, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/20738/pg20738.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/20738",
+          "downloadCount": 6454,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/20738.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-21143",
+          "id": 21143,
+          "source": "gutendex",
+          "title": "Las Fábulas de Esopo, Vol. 01",
+          "author": "Aesop",
+          "authors": [
+            "Aesop",
+            "George Fyler Townsend"
+          ],
+          "category": "Fables, Greek",
+          "subjects": [
+            "Fables, Greek -- Translations into Spanish"
+          ],
+          "languages": [
+            "es"
+          ],
+          "summary": "A Spanish public-domain title by Aesop, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/21143/pg21143.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/21143",
+          "downloadCount": 5410,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/files/21143/21143-readme.txt",
+            "mimeType": "text/plain; charset=us-ascii"
+          }
+        }
+      ]
+    },
+    "it": {
+      "label": "Italian",
+      "count": 1119,
+      "books": [
+        {
+          "key": "gutenberg-61885",
+          "id": 61885,
+          "source": "gutendex",
+          "title": "Ricordi d'infanzia e di scuola: seguìti da Bambole e marionette, Gente minima, Piccoli studenti, Adolescenti, Due di spade e due di cuori",
+          "author": "Edmondo De Amicis",
+          "authors": [
+            "Edmondo De Amicis"
+          ],
+          "category": "Biographies",
+          "subjects": [
+            "De Amicis, Edmondo, 1846-1908"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Edmondo De Amicis, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/61885/pg61885.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/61885",
+          "downloadCount": 9700,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/61885.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-1012",
+          "id": 1012,
+          "source": "gutendex",
+          "title": "La Divina Commedia di Dante",
+          "author": "Dante Alighieri",
+          "authors": [
+            "Dante Alighieri"
+          ],
+          "category": "Banned Books from Anne Haight's list",
+          "subjects": [
+            "Epic poetry, Italian",
+            "Italian poetry -- To 1400"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Dante Alighieri, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/1012/pg1012.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/1012",
+          "downloadCount": 9121,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/1012.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-44549",
+          "id": 44549,
+          "source": "gutendex",
+          "title": "Il libro di Sidrach: testo inedito del secolo XIV: pubblicato da Adolfo Bartoli",
+          "author": "active 13th century Sidrac",
+          "authors": [
+            "active 13th century Sidrac"
+          ],
+          "category": "History - Medieval/Middle Ages",
+          "subjects": [
+            "Civilization, Medieval -- Early works to 1800",
+            "Encyclopedias and dictionaries -- Early works to 1600",
+            "Science, Medieval -- Early works to 1800"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by active 13th century Sidrac, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/44549/pg44549.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/44549",
+          "downloadCount": 5239,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/44549.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-19517",
+          "id": 19517,
+          "source": "gutendex",
+          "title": "Le avventure di Pinocchio",
+          "author": "Carlo Collodi",
+          "authors": [
+            "Carlo Collodi"
+          ],
+          "category": "IT Letteratura per ragazzi",
+          "subjects": [
+            "Fairy tales",
+            "Pinocchio (Fictitious character) -- Juvenile fiction",
+            "Puppets -- Juvenile fiction"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Carlo Collodi, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/19517/pg19517.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/19517",
+          "downloadCount": 4827,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/files/19517/19517.txt",
+            "mimeType": "text/plain; charset=us-ascii"
+          }
+        },
+        {
+          "key": "gutenberg-52484",
+          "id": 52484,
+          "source": "gutendex",
+          "title": "Le avventure di Pinocchio: Storia di un burattino",
+          "author": "Carlo Collodi",
+          "authors": [
+            "Carlo Collodi"
+          ],
+          "category": "Children & Young Adult Reading",
+          "subjects": [
+            "Fairy tales",
+            "Pinocchio (Fictitious character) -- Juvenile fiction",
+            "Puppets -- Juvenile fiction"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Carlo Collodi, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/52484/pg52484.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/52484",
+          "downloadCount": 3543,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/52484.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-38720",
+          "id": 38720,
+          "source": "gutendex",
+          "title": "L'amore che torna: romanzo",
+          "author": "Guido da Verona",
+          "authors": [
+            "Guido da Verona"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Italian fiction"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Guido da Verona, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/38720/pg38720.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/38720",
+          "downloadCount": 3302,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/38720.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-25178",
+          "id": 25178,
+          "source": "gutendex",
+          "title": "Damiano: Storia di una povera famiglia",
+          "author": "Giulio Carcano",
+          "authors": [
+            "Giulio Carcano"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Fiction"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Giulio Carcano, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/25178/pg25178.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/25178",
+          "downloadCount": 3251,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/25178.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-38628",
+          "id": 38628,
+          "source": "gutendex",
+          "title": "Vecchie storie d'amore",
+          "author": "Adolfo Albertazzi",
+          "authors": [
+            "Adolfo Albertazzi"
+          ],
+          "category": "Romance",
+          "subjects": [
+            "Fiction",
+            "Short stories, Italian"
+          ],
+          "languages": [
+            "it"
+          ],
+          "summary": "An Italian public-domain title by Adolfo Albertazzi, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/38628/pg38628.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/38628",
+          "downloadCount": 3183,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/38628.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "pt": {
+      "label": "Portuguese",
+      "count": 657,
+      "books": [
+        {
+          "key": "gutenberg-62383",
+          "id": 62383,
+          "source": "gutendex",
+          "title": "A Biblia Sagrada, Contendo o Velho e o Novo Testamento",
+          "author": "Unknown author",
+          "authors": [
+            "Unknown author"
+          ],
+          "category": "Religion/Spirituality",
+          "subjects": [
+            "Bible"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Unknown author, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/62383/pg62383.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/62383",
+          "downloadCount": 47118,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/62383.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-55752",
+          "id": 55752,
+          "source": "gutendex",
+          "title": "Dom Casmurro",
+          "author": "Machado de Assis",
+          "authors": [
+            "Machado de Assis"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Adultery -- Fiction",
+            "Authorship -- Fiction",
+            "Catholic Church -- Fiction",
+            "Reminiscing in old age -- Fiction"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Machado de Assis, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/55752/pg55752.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/55752",
+          "downloadCount": 5409,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/55752.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-31552",
+          "id": 31552,
+          "source": "gutendex",
+          "title": "Novo dicionário da língua portuguesa",
+          "author": "Cândido de Figueiredo",
+          "authors": [
+            "Cândido de Figueiredo"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "Portuguese language -- Dictionaries"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Cândido de Figueiredo, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/31552/pg31552.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/31552",
+          "downloadCount": 5369,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/31552.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-3333",
+          "id": 3333,
+          "source": "gutendex",
+          "title": "Os Lusíadas",
+          "author": "Luís de Camões",
+          "authors": [
+            "Luís de Camões"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Epic poetry, Portuguese",
+            "Explorers -- Portugal -- Poetry",
+            "Gama, Vasco da, 1469-1524 -- Poetry",
+            "India -- Discovery and exploration -- Poetry"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Luís de Camões, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/3333/pg3333.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/3333",
+          "downloadCount": 3735,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/3333.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-54829",
+          "id": 54829,
+          "source": "gutendex",
+          "title": "Memorias Posthumas de Braz Cubas",
+          "author": "Machado de Assis",
+          "authors": [
+            "Machado de Assis"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Brazil -- Fiction",
+            "Dead -- Fiction",
+            "Humorous stories",
+            "Rich people -- Fiction"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Machado de Assis, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/54829/pg54829.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/54829",
+          "downloadCount": 2827,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/54829.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-23400",
+          "id": 23400,
+          "source": "gutendex",
+          "title": "A Lenda da Meia-Noite",
+          "author": "Manuel Pinheiro Chagas",
+          "authors": [
+            "Manuel Pinheiro Chagas"
+          ],
+          "category": "Mythology, Legends & Folklore",
+          "subjects": [
+            "Portuguese fiction -- 19th century"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Manuel Pinheiro Chagas, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/23400/pg23400.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/23400",
+          "downloadCount": 2240,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/23400.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-40409",
+          "id": 40409,
+          "source": "gutendex",
+          "title": "Os Maias: episodios da vida romantica",
+          "author": "Eça de Queirós",
+          "authors": [
+            "Eça de Queirós"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Portugal -- Fiction"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Eça de Queirós, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/40409/pg40409.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/40409",
+          "downloadCount": 2083,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/40409.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-22044",
+          "id": 22044,
+          "source": "gutendex",
+          "title": "Indice chronologico dos factos mais notaveis da Historia do Brasil: desde seu descobrimento em 1500 até 1849",
+          "author": "Agostinho Marques Perdigão Malheiro",
+          "authors": [
+            "Agostinho Marques Perdigão Malheiro"
+          ],
+          "category": "History - Other",
+          "subjects": [
+            "Brazil -- History"
+          ],
+          "languages": [
+            "pt"
+          ],
+          "summary": "A Portuguese public-domain title by Agostinho Marques Perdigão Malheiro, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/22044/pg22044.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/22044",
+          "downloadCount": 1943,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/22044.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "nl": {
+      "label": "Dutch",
+      "count": 1127,
+      "books": [
+        {
+          "key": "gutenberg-76280",
+          "id": 76280,
+          "source": "gutendex",
+          "title": "Mathias Sandorf [1] : Een verijdelde samenzwering; Dokter Antekirrt",
+          "author": "Jules Verne",
+          "authors": [
+            "Jules Verne"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Betrayal -- Fiction",
+            "Retribution -- Fiction"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Jules Verne, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76280/pg76280.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76280",
+          "downloadCount": 4939,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76280.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76346",
+          "id": 76346,
+          "source": "gutendex",
+          "title": "Nieuw Utopia",
+          "author": "Bernard Alexander Canter",
+          "authors": [
+            "Bernard Alexander Canter"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Dutch fiction -- 20th century",
+            "Speculative fiction"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Bernard Alexander Canter, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76346/pg76346.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76346",
+          "downloadCount": 4768,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76346.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76186",
+          "id": 76186,
+          "source": "gutendex",
+          "title": "Lord Lister No. 0032: De blauwe dood",
+          "author": "Kurt Matull",
+          "authors": [
+            "Kurt Matull",
+            "Theo von Blankensee"
+          ],
+          "category": "Crime, Thrillers and Mystery",
+          "subjects": [
+            "Detective and mystery stories -- Periodicals",
+            "Dime novels -- Periodicals"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76186/pg76186.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76186",
+          "downloadCount": 4745,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76186.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76187",
+          "id": 76187,
+          "source": "gutendex",
+          "title": "Lord Lister No. 0126: Het politieraadsel",
+          "author": "Kurt Matull",
+          "authors": [
+            "Kurt Matull",
+            "Theo von Blankensee"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Detective and mystery stories -- Periodicals",
+            "Dime novels -- Periodicals"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76187/pg76187.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76187",
+          "downloadCount": 4655,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76187.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-22722",
+          "id": 22722,
+          "source": "gutendex",
+          "title": "Woordenlijst voor de spelling der Nederlandsche Taal: Met aanwijzing van de geslachten der naamwoorden en de vervoeging der werkwoorden",
+          "author": "M. de (Matthias) Vries",
+          "authors": [
+            "M. de (Matthias) Vries",
+            "L. A. te Winkel"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "Dutch language -- Orthography and spelling"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by M. de (Matthias) Vries, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/22722/pg22722.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/22722",
+          "downloadCount": 4461,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/22722.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76865",
+          "id": 76865,
+          "source": "gutendex",
+          "title": "Lord Lister No. 0334: Onder de goudzoekers",
+          "author": "Kurt Matull",
+          "authors": [
+            "Kurt Matull",
+            "Theo von Blankensee",
+            "Felix (Leonard Felix) Hageman"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Detective and mystery stories -- Periodicals",
+            "Dime novels -- Periodicals"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76865/pg76865.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76865",
+          "downloadCount": 4239,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76865.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76761",
+          "id": 76761,
+          "source": "gutendex",
+          "title": "Lord Lister No. 0033: De Alarmkreet",
+          "author": "Kurt Matull",
+          "authors": [
+            "Kurt Matull",
+            "Theo von Blankensee"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Detective and mystery stories -- Periodicals",
+            "Dime novels -- Periodicals"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76761/pg76761.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76761",
+          "downloadCount": 4179,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76761.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-76765",
+          "id": 76765,
+          "source": "gutendex",
+          "title": "Lord Lister No. 0333: De liefde van een bokser",
+          "author": "Kurt Matull",
+          "authors": [
+            "Kurt Matull",
+            "Theo von Blankensee",
+            "Felix (Leonard Felix) Hageman"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Detective and mystery stories -- Periodicals",
+            "Dime novels -- Periodicals"
+          ],
+          "languages": [
+            "nl"
+          ],
+          "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/76765/pg76765.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/76765",
+          "downloadCount": 4169,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/76765.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "fi": {
+      "label": "Finnish",
+      "count": 3702,
+      "books": [
+        {
+          "key": "gutenberg-78071",
+          "id": 78071,
+          "source": "gutendex",
+          "title": "Kaksi morsianta : Yksinäytöksinen pila",
+          "author": "Kaarlo Hemmo",
+          "authors": [
+            "Kaarlo Hemmo"
+          ],
+          "category": "Comedy plays",
+          "subjects": [
+            "Comedy plays",
+            "Finnish drama -- 20th century",
+            "One-act plays"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Kaarlo Hemmo, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78071/pg78071.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78071",
+          "downloadCount": 24413,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78071.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78058",
+          "id": 78058,
+          "source": "gutendex",
+          "title": "Lintukoto : Muutamia päiväkirjan lehtiä",
+          "author": "Joel Lehtonen",
+          "authors": [
+            "Joel Lehtonen"
+          ],
+          "category": "Finnish fiction",
+          "subjects": [
+            "Finnish fiction -- 20th century",
+            "Short stories, Finnish"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Joel Lehtonen, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78058/pg78058.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78058",
+          "downloadCount": 24382,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78058.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78007",
+          "id": 78007,
+          "source": "gutendex",
+          "title": "Vanhaa viinaa uudessa leilissä : Pakinoita",
+          "author": "Tatu Valkonen",
+          "authors": [
+            "Tatu Valkonen"
+          ],
+          "category": "Finnish wit and humor",
+          "subjects": [
+            "Finnish wit and humor"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Tatu Valkonen, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78007/pg78007.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78007",
+          "downloadCount": 24363,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78007.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78049",
+          "id": 78049,
+          "source": "gutendex",
+          "title": "Sointula : Kolminäytöksinen näytelmä",
+          "author": "Arvid Järnefelt",
+          "authors": [
+            "Arvid Järnefelt"
+          ],
+          "category": "Finnish drama",
+          "subjects": [
+            "Finnish drama -- 20th century"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Arvid Järnefelt, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78049/pg78049.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78049",
+          "downloadCount": 24342,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78049.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78018",
+          "id": 78018,
+          "source": "gutendex",
+          "title": "Karavaani ja muita juttuja",
+          "author": "Pentti Haanpää",
+          "authors": [
+            "Pentti Haanpää"
+          ],
+          "category": "Finnish fiction",
+          "subjects": [
+            "Finnish fiction -- 20th century",
+            "Short stories, Finnish"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Pentti Haanpää, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78018/pg78018.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78018",
+          "downloadCount": 24316,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78018.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78097",
+          "id": 78097,
+          "source": "gutendex",
+          "title": "Kevättuulahduksia : Runokokoelma",
+          "author": "Niilo Mantere",
+          "authors": [
+            "Niilo Mantere"
+          ],
+          "category": "Finnish poetry",
+          "subjects": [
+            "Finnish poetry -- 19th century"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Niilo Mantere, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78097/pg78097.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78097",
+          "downloadCount": 24314,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78097.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78042",
+          "id": 78042,
+          "source": "gutendex",
+          "title": "Ihmisvihaaja : Viisinäytöksinen huvinäytelmä",
+          "author": "Molière",
+          "authors": [
+            "Molière"
+          ],
+          "category": "Comedy plays",
+          "subjects": [
+            "Comedy plays",
+            "France -- Social life and customs -- 17th century -- Drama",
+            "Man-woman relationships -- Drama"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Molière, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78042/pg78042.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78042",
+          "downloadCount": 24311,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78042.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-78070",
+          "id": 78070,
+          "source": "gutendex",
+          "title": "Velisurmaaja : Kolmenäytöksinen murhenäytelmä",
+          "author": "Lauri Haarla",
+          "authors": [
+            "Lauri Haarla"
+          ],
+          "category": "Finnish drama",
+          "subjects": [
+            "Finnish drama -- 20th century",
+            "Tragedies (Drama)"
+          ],
+          "languages": [
+            "fi"
+          ],
+          "summary": "A Finnish public-domain title by Lauri Haarla, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/78070/pg78070.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/78070",
+          "downloadCount": 24195,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/78070.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "sv": {
+      "label": "Swedish",
+      "count": 257,
+      "books": [
+        {
+          "key": "gutenberg-65580",
+          "id": 65580,
+          "source": "gutendex",
+          "title": "Carl Svenske: Historisk berättelse från frihetstiden",
+          "author": "Gustaf Björlin",
+          "authors": [
+            "Gustaf Björlin"
+          ],
+          "category": "Historical Novels",
+          "subjects": [
+            "Historical fiction",
+            "Sweden -- Fiction"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Gustaf Björlin, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/65580/pg65580.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/65580",
+          "downloadCount": 3458,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/65580.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-74639",
+          "id": 74639,
+          "source": "gutendex",
+          "title": "Fröken Liwin",
+          "author": "Marika Stiernstedt",
+          "authors": [
+            "Marika Stiernstedt"
+          ],
+          "category": "Foster children",
+          "subjects": [
+            "Foster children -- Fiction",
+            "Mothers and daughters -- Fiction",
+            "Swedish fiction -- 20th century",
+            "Unmarried mothers -- Fiction"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Marika Stiernstedt, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/74639/pg74639.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/74639",
+          "downloadCount": 1584,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/74639.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-26479",
+          "id": 26479,
+          "source": "gutendex",
+          "title": "I Utvecklingstid: En berättelse om flickor",
+          "author": "Toini Topelius",
+          "authors": [
+            "Toini Topelius"
+          ],
+          "category": "Children & Young Adult Reading",
+          "subjects": [
+            "Girls -- Juvenile fiction",
+            "Swedes -- Finland -- Social life and customs -- Juvenile fiction"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Toini Topelius, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/26479/pg26479.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/26479",
+          "downloadCount": 1516,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/26479.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-62806",
+          "id": 62806,
+          "source": "gutendex",
+          "title": "Kåtornas folk",
+          "author": "Ester Blenda Nordström",
+          "authors": [
+            "Ester Blenda Nordström"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Lapland -- Description and travel",
+            "Sami (European people)"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Ester Blenda Nordström, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/62806/pg62806.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/62806",
+          "downloadCount": 1362,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/62806.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-51613",
+          "id": 51613,
+          "source": "gutendex",
+          "title": "Engelsk-Svensk och Svensk-Engelsk Ordbok Med Fullständig Uttalsbeteckning",
+          "author": "Frederick Lönnkvist",
+          "authors": [
+            "Frederick Lönnkvist"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "English language -- Dictionaries -- Swedish",
+            "Swedish language -- Dictionaries -- English",
+            "Swedish language -- Glossaries, vocabularies, etc."
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Frederick Lönnkvist, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/51613/pg51613.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/51613",
+          "downloadCount": 1360,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/51613.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-48961",
+          "id": 48961,
+          "source": "gutendex",
+          "title": "En piga bland pigor",
+          "author": "Ester Blenda Nordström",
+          "authors": [
+            "Ester Blenda Nordström"
+          ],
+          "category": "Adventure",
+          "subjects": [
+            "Farm life -- Sweden",
+            "Household employees -- Sweden"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Ester Blenda Nordström, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/48961/pg48961.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/48961",
+          "downloadCount": 1288,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/48961.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-48964",
+          "id": 48964,
+          "source": "gutendex",
+          "title": "Ett pennskaft som piga",
+          "author": "Anton Holtz",
+          "authors": [
+            "Anton Holtz"
+          ],
+          "category": "Humour",
+          "subjects": [
+            "Nordström, Ester Blenda, 1891-1948. En piga bland pigor"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Anton Holtz, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/48964/pg48964.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/48964",
+          "downloadCount": 1160,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/48964.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-28473",
+          "id": 28473,
+          "source": "gutendex",
+          "title": "Boken om lille-bror: Ett äktenskaps roman",
+          "author": "Gustaf af Geijerstam",
+          "authors": [
+            "Gustaf af Geijerstam"
+          ],
+          "category": "Novels",
+          "subjects": [
+            "Domestic fiction",
+            "Married people -- Fiction",
+            "Sweden -- Fiction"
+          ],
+          "languages": [
+            "sv"
+          ],
+          "summary": "A Swedish public-domain title by Gustaf af Geijerstam, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/28473/pg28473.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/28473",
+          "downloadCount": 1147,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/28473.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    },
+    "la": {
+      "label": "Latin",
+      "count": 146,
+      "books": [
+        {
+          "key": "gutenberg-218",
+          "id": 218,
+          "source": "gutendex",
+          "title": "C. Iuli Caesaris De Bello Gallico, I-IV",
+          "author": "Julius Caesar",
+          "authors": [
+            "Julius Caesar"
+          ],
+          "category": "History - Ancient",
+          "subjects": [
+            "Gaul -- History -- Gallic Wars, 58-51 B.C."
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Julius Caesar, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/218/pg218.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/218",
+          "downloadCount": 1760,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/218.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-226",
+          "id": 226,
+          "source": "gutendex",
+          "title": "Cicero's Orations",
+          "author": "Marcus Tullius Cicero",
+          "authors": [
+            "Marcus Tullius Cicero"
+          ],
+          "category": "Essays, Letters & Speeches",
+          "subjects": [
+            "Rome -- History -- 53-44 B.C. -- Sources",
+            "Speeches, addresses, etc., Latin"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Marcus Tullius Cicero, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/226/pg226.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/226",
+          "downloadCount": 1337,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/226.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-227",
+          "id": 227,
+          "source": "gutendex",
+          "title": "Aeneidos",
+          "author": "Virgil",
+          "authors": [
+            "Virgil"
+          ],
+          "category": "Best Books Ever Listings",
+          "subjects": [
+            "Aeneas (Legendary character) -- Poetry",
+            "Epic poetry, Latin",
+            "Legends -- Rome -- Poetry"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/227/pg227.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/227",
+          "downloadCount": 8361,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/227.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-229",
+          "id": 229,
+          "source": "gutendex",
+          "title": "The Bucolics and Eclogues",
+          "author": "Virgil",
+          "authors": [
+            "Virgil"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Country life -- Rome -- Poetry",
+            "Pastoral poetry, Latin"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/229/pg229.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/229",
+          "downloadCount": 1190,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/229.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-231",
+          "id": 231,
+          "source": "gutendex",
+          "title": "Georgicon",
+          "author": "Virgil",
+          "authors": [
+            "Virgil"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Agriculture -- Poetry",
+            "Didactic poetry, Latin"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/231/pg231.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/231",
+          "downloadCount": 1228,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/231.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-237",
+          "id": 237,
+          "source": "gutendex",
+          "title": "Sexti Properti Elegiarvm: Liber Primvs",
+          "author": "Sextus Propertius",
+          "authors": [
+            "Sextus Propertius"
+          ],
+          "category": "Classics of Literature",
+          "subjects": [
+            "Elegiac poetry, Latin",
+            "Latin poetry",
+            "Love poetry, Latin",
+            "Man-woman relationships -- Poetry"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Sextus Propertius, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/237/pg237.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/237",
+          "downloadCount": 664,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/237.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-607",
+          "id": 607,
+          "source": "gutendex",
+          "title": "Die Augsburger Confession",
+          "author": "Philipp Melanchthon",
+          "authors": [
+            "Philipp Melanchthon"
+          ],
+          "category": "History - Early Modern (c. 1450-1750)",
+          "subjects": [
+            "Lutheran Church -- Doctrines",
+            "Theology, Doctrinal"
+          ],
+          "languages": [
+            "de",
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Philipp Melanchthon, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/607/pg607.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/607",
+          "downloadCount": 602,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/607.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        },
+        {
+          "key": "gutenberg-825",
+          "id": 825,
+          "source": "gutendex",
+          "title": "Latin Vulgate, Bible Book Titles and Names",
+          "author": "Anonymous",
+          "authors": [
+            "Anonymous"
+          ],
+          "category": "Encyclopedias/Dictionaries/Reference",
+          "subjects": [
+            "Bible"
+          ],
+          "languages": [
+            "la"
+          ],
+          "summary": "A Latin public-domain title by Anonymous, available through Project Gutenberg.",
+          "coverUrl": "https://www.gutenberg.org/cache/epub/825/pg825.cover.medium.jpg",
+          "sourceUrl": "https://www.gutenberg.org/ebooks/825",
+          "downloadCount": 681,
+          "copyright": false,
+          "reader": {
+            "engine": "text",
+            "sourceUrl": "https://www.gutenberg.org/ebooks/825.txt.utf-8",
+            "mimeType": "text/plain; charset=utf-8"
+          }
+        }
+      ]
+    }
+  };
+
   const users = [
     {
       id: "student-maya",
@@ -1051,6 +3386,17 @@
     AVID_READER_TARGET: 3,
     AVID_READER_WINDOW_DAYS: 7,
     STREAK_MILESTONES: [1, 7, 30, 180, 365],
+    /* Reader motto shown on the dashboard, kept to a short, calm pair. */
+    DASHBOARD_QUOTES: [
+      {
+        text: "One best book is equal to a hundred good friends, but one good friend is equal to a library.",
+        author: "A. P. J. Abdul Kalam"
+      },
+      {
+        text: "Arise, awake, and stop not till the goal is reached.",
+        author: "Swami Vivekananda"
+      }
+    ],
     CERTIFICATE_REWARD_DAYS: 7,
     /* Paid premium plans (local demo prices, Indian rupees). */
     PREMIUM_PLANS: [
@@ -1088,7 +3434,9 @@
     PREMIUM_BOOKS: premiumBooks,
     PREMIUM_SPOTLIGHT: premiumSpotlight,
     HINDI_BOOKS: hindiBooks,
+    LANGUAGE_SHELVES: languageShelves,
     hindiBooks,
+    languageShelves,
     OFFLINE_STARTER_BOOKS: offlineStarterBooks,
     DAY_IN_MS,
     dayKey,
