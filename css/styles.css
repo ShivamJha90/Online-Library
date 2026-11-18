@@ -5706,10 +5706,20 @@ button.milestone-card:hover {
   .catalog-filter-bar {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
+    padding: 14px;
   }
 
+  /* Stack the label above the control so the whole width is tappable. */
   .catalog-filter-bar label {
-    justify-content: space-between;
+    display: grid;
+    justify-content: stretch;
+    gap: 6px;
+  }
+
+  .catalog-filter-bar select {
+    min-height: 42px;
+    width: 100%;
   }
 
   .admin-book-card {
