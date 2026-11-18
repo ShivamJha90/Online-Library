@@ -67,8 +67,8 @@
 - Premium gating is enforced in the reader entry points and in the direct `#reader/<book-key>` route, so a copied URL cannot bypass a locked title.
 
 ### Content protection and device limit
-- **Best-effort screenshot protection:** the reading surface is blacked out when the window loses focus or the tab is hidden, and `PrintScreen`, `Ctrl/Cmd+P` and `Ctrl/Cmd+S` are intercepted. Copy, cut and the context menu are blocked inside the reader, reader pages print as a black notice, and a faint per-account watermark is drawn over the reader.
-- Browser JavaScript cannot stop an operating-system screenshot tool or a camera. This is a deterrent, not DRM.
+- **Best-effort screenshot protection:** the reading surface is blacked out when the window loses focus or the tab is hidden, and `PrintScreen`, `Ctrl/Cmd+P` and `Ctrl/Cmd+S` are intercepted. Copy, cut and the context menu are blocked inside the reader, reader pages print as a black notice, and a faint per-account watermark with a live date/time is drawn over the reader.
+- Browser JavaScript cannot stop an operating-system screenshot tool or a camera. This is a deterrent, not DRM: an OS capture is written to disk before the page hears anything, so the watermark is what makes a shared copy traceable.
 - An account may be active on at most **2 devices**. Signing in on a third device automatically disconnects the least recently used session. Active devices are listed in Settings with a manual **Disconnect** action.
 - With the local backend running, device sessions are enforced on the server and the evicted browser is signed out on its next heartbeat. Without it, the limit is enforced inside the local browser profile.
 

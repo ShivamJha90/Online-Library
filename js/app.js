@@ -1889,28 +1889,50 @@
     /**
      * Best-effort content protection. A static site cannot stop an operating
      * system screenshot tool, but it can black the reading surface on window
-     * blur, block the browser print dialog, and stop copy/cut from the reader.
+     * blur, react to capture shortcuts, block the browser print dialog, and
+     * stop copy/cut from the reader.
      */
     initContentProtection() {
       this.shield = document.querySelector("#content-shield");
       this.shield?.addEventListener("click", () => this.setShield(false));
 
-      document.addEventListener("keydown", (event) => {
+      // PrintScreen reaches the page on keydown in some browsers and only on
+      // keyup in others, so both events are watched. Windows puts the capture
+      // on the clipboard before any script runs, which is why the shield and
+      // the watermark - not a blocked image - are the real deterrents.
+      const captureAttempt = (event) => {
         const key = String(event.key || "").toLowerCase();
-        const captureKey = event.key === "PrintScreen" || event.code === "PrintScreen";
-        const snippingCombo = event.metaKey && event.shiftKey && key === "s";
+        const captureKey = event.key === "PrintScreen" || event.code === "PrintScreen" || key === "snapshot";
+        const snippingCombo = event.shiftKey && (event.metaKey || event.ctrlKey) && key === "s";
         const printCombo = (event.ctrlKey || event.metaKey) && key === "p";
         const saveCombo = (event.ctrlKey || event.metaKey) && key === "s";
         if (!captureKey && !snippingCombo && !printCombo && !saveCombo) return;
+        // keydown and keyup both fire for one press; warn once per attempt.
+        const now = Date.now();
+        if (now - (this.lastCaptureWarning || 0) < 900) return;
+        this.lastCaptureWarning = now;
         event.preventDefault();
         this.setShield(true);
+        if (document.body.classList.contains("reader-mode")) {
+          // Overwriting the clipboard only works in browsers that deliver the
+          // key event and grant clipboard write access; failure is harmless.
+          try {
+            navigator.clipboard
+              ?.writeText("ScholarScroll protected view: screen capture is traceable to the signed-in account.")
+              .catch(() => {});
+          } catch {
+            /* clipboard access is optional */
+          }
+        }
         this.toast.show(
-          "Screenshot shortcuts, printing and saving are restricted. Screen capture cannot be fully blocked by a website.",
+          "Screen capture is restricted here. Operating-system screenshots cannot be blocked by a website, but every page carries your account watermark.",
           "warning",
-          5200
+          6000
         );
-        window.setTimeout(() => this.setShield(false), 1500);
-      }, true);
+        window.setTimeout(() => this.setShield(false), 2200);
+      };
+      document.addEventListener("keydown", captureAttempt, true);
+      document.addEventListener("keyup", captureAttempt, true);
 
       const blockClipboard = (event) => {
         if (!document.body.classList.contains("reader-mode")) return;
@@ -3267,11 +3289,21 @@
         watermark: () => {
           const user = this.store.currentUser;
           if (!user) return "";
-          const stamp = new Date().toISOString().slice(0, 10);
-          return `${user.email} · ${stamp}`;
+          const now = new Date();
+          const stamp = now.toISOString().slice(0, 10);
+          const clock = now.toTimeString().slice(0, 5);
+          return `${user.email} · ${stamp} ${clock}`;
         }
       });
       this.reader.open(this.prepareReaderBook(book));
+      if (!this.protectionNoticeShown) {
+        this.protectionNoticeShown = true;
+        this.toast.show(
+          "Protected view: every page carries your account watermark and a time stamp. A browser cannot stop an operating-system screenshot, but a shared copy stays traceable.",
+          "info",
+          8000
+        );
+      }
       this.renderChrome();
       this.updateDocumentMeta(book.hindi ? this.routes.hindi : this.routes.catalog, book);
     }

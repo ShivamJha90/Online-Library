@@ -773,6 +773,10 @@
       this.bindElements();
       this.bindControls();
       this.renderWatermark();
+      // Refresh the forensic stamp every minute so a shared screenshot can be
+      // tied to a rough time as well as to the signed-in account.
+      window.clearInterval(this.watermarkTimer);
+      this.watermarkTimer = window.setInterval(() => this.renderWatermark(), 60000);
       this.applyPreferences();
       if (window.matchMedia?.("(max-width: 760px)").matches) this.root.classList.add("notes-closed");
 
@@ -1408,6 +1412,7 @@
       this.destroyed = true;
       window.clearTimeout(this.noteTimer);
       window.clearTimeout(this.resizeTimer);
+      window.clearInterval(this.watermarkTimer);
       window.removeEventListener("resize", this.handleResize);
       window.removeEventListener("keydown", this.handleKeydown);
       document.removeEventListener("fullscreenchange", this.handleFullscreenChange);
