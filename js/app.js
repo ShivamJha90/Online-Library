@@ -1623,6 +1623,7 @@
       document.addEventListener("change", (event) => this.handleChange(event));
       document.addEventListener("keydown", (event) => this.handleKeyboard(event));
       document.addEventListener("error", (event) => this.handleImageError(event), true);
+      document.addEventListener("load", (event) => this.handleImageLoad(event), true);
       window.addEventListener("storage", (event) => this.handleStorageChange(event));
       window.addEventListener("online", () => {
         this.updateNetworkState(true);
@@ -2776,10 +2777,33 @@
     handleImageError(event) {
       const image = event.target;
       if (!(image instanceof HTMLImageElement) || !image.matches("[data-cover-image]")) return;
+      let sources = [];
+      try {
+        sources = JSON.parse(image.dataset.coverSrcs || "[]");
+      } catch {
+        sources = [];
+      }
+      // The first entry is the URL that just failed; try the next mirror.
+      const remaining = sources.slice(1);
+      if (remaining.length) {
+        image.dataset.coverSrcs = JSON.stringify(remaining);
+        image.hidden = false;
+        image.classList.remove("is-loaded");
+        image.src = remaining[0];
+        return;
+      }
       image.hidden = true;
       const sibling = image.nextElementSibling?.matches("[data-cover-fallback]") ? image.nextElementSibling : null;
       const fallback = sibling || image.closest(".cover-frame")?.querySelector("[data-cover-fallback]");
       if (fallback) fallback.hidden = false;
+    }
+
+    handleImageLoad(event) {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement) || !image.matches("[data-cover-image]")) return;
+      if (!image.naturalWidth) return;
+      image.classList.add("is-loaded");
+      image.hidden = false;
     }
 
     handleStorageChange(event) {
@@ -3614,7 +3638,7 @@
     }
 
     coverMarkup(book, className) {
-      const cover = safeUrl(book.coverUrl);
+      const sources = this.coverSources(book);
       const title = book.title || "Untitled";
       const shortTitle = title.split(/\s+/).slice(0, 5).join(" ");
       const author = book.author || "Public domain";
@@ -3628,9 +3652,35 @@
               <em>${escapeHTML(author)}</em>
             </span>
           </span>
-          ${cover ? `<img class="${className} cover-plate-image" data-cover-image src="${escapeHTML(cover)}" alt="Cover of ${escapeHTML(title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ""}
+          ${sources.length ? `<img class="${className} cover-plate-image" data-cover-image data-cover-srcs="${escapeHTML(JSON.stringify(sources))}" src="${escapeHTML(sources[0])}" alt="Cover of ${escapeHTML(title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ""}
         </span>
       `;
+    }
+
+    /**
+     * Ordered cover URLs for one book.
+     *
+     * Project Gutenberg periodically answers cover requests with 503 from
+     * www.gutenberg.org, which is why so many cards used to fall back to the
+     * generated plate. The official pglaf mirror carries the same artwork, so
+     * Gutenberg covers get a mirror in reserve and the image element walks the
+     * list on error. Bundled assets stay same-origin.
+     */
+    coverSources(book) {
+      const raw = String(book.coverUrl || "").trim();
+      if (!raw) return [];
+      if (/^assets\//i.test(raw)) return [raw];
+      const direct = safeUrl(raw);
+      if (!direct) return [];
+      // www.gutenberg.org answers most cover requests with 503 while the
+      // official pglaf mirror serves the same artwork, so try the mirror
+      // first for live catalog results and keep the origin as a backup.
+      const mirror = direct.replace(
+        /^https:\/\/(?:www\.)?gutenberg\.org\/cache\/epub\//i,
+        "https://gutenberg.pglaf.org/cache/epub/"
+      );
+      if (mirror !== direct) return [mirror, direct];
+      return [direct];
     }
 
     renderDashboard() {

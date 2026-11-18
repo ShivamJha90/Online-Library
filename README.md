@@ -73,8 +73,9 @@
 - With the local backend running, device sessions are enforced on the server and the evicted browser is signed out on its next heartbeat. Without it, the limit is enforced inside the local browser profile.
 
 ### Premium reader editions
-- The premium page includes a PDF shelf of editions supplied by the project owner: *The Power of Your Subconscious Mind*, *The 4-Hour Workweek*, *The Almanack of Naval Ravikant*, *Wealth* (Emerson), *The Game of Life and How to Play It*, *Think and Grow Rich*, *Atomic Habits*, *The Richest Man in Babylon*, *The Science of Getting Rich*, *The Art of Money Getting*, *As a Man Thinketh* and *Acres of Diamonds*.
+- The premium page includes a PDF shelf of editions supplied by the project owner: *The Power of Your Subconscious Mind*, *The 4-Hour Workweek*, *The Almanack of Naval Ravikant*, *Wealth* (Emerson), *The Game of Life and How to Play It*, *Think and Grow Rich*, *Atomic Habits*, *The Richest Man in Babylon*, *The Science of Getting Rich*, *The Art of Money Getting*, *As a Man Thinketh*, *Acres of Diamonds*, *The Psychology of Selling*, *No Excuses!* and *Million Dollar Habits* (the last three by Brian Tracy).
 - These PDFs live in `assets/premium/` and open in the same PDF.js reader as administrator uploads, with zoom, portrait/landscape layout and light/dark themes.
+- Their jackets are bundled in `assets/premium/covers/`, so the shelf paints instantly and works offline instead of waiting on a third-party cover service.
 - Some of these titles remain in copyright. They are included only because the project owner supplied the files; check that you have the right to use each copy in your jurisdiction. They are not downloads from Project Gutenberg.
 
 ### Modern bestsellers spotlight

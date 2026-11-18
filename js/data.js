@@ -38,7 +38,7 @@
       subjects: ["Courtship -- Fiction", "England -- Fiction"],
       languages: ["en"],
       summary: "Elizabeth Bennet and Mr. Darcy navigate pride, prejudice and the expectations of Regency society in Jane Austen's most celebrated novel.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/1342/pg1342.cover.medium.jpg",
+      coverUrl: "assets/covers/pg1342.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/1342",
       downloadCount: 0,
       copyright: false,
@@ -59,7 +59,7 @@
       subjects: ["Frankenstein's monster (Fictitious character) -- Fiction"],
       languages: ["en"],
       summary: "Victor Frankenstein creates life from death, then abandons the creature whose loneliness turns into a demand for revenge.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/84/pg84.cover.medium.jpg",
+      coverUrl: "assets/covers/pg84.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/84",
       downloadCount: 0,
       copyright: false,
@@ -80,7 +80,7 @@
       subjects: ["Time travel -- Fiction"],
       languages: ["en"],
       summary: "A Victorian inventor travels to the distant future and discovers a world divided between the Eloi and the Morlocks.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/35/pg35.cover.medium.jpg",
+      coverUrl: "assets/covers/pg35.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/35",
       downloadCount: 0,
       copyright: false,
@@ -108,7 +108,7 @@
       subjects: ["Stoicism", "Ethics"],
       languages: ["en"],
       summary: "The private notebook of a Roman emperor: practical reflections on duty, mortality and keeping a calm mind.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/2680/pg2680.cover.medium.jpg",
+      coverUrl: "assets/covers/pg2680.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/2680",
       downloadCount: 0,
       copyright: false,
@@ -130,7 +130,7 @@
       subjects: ["Military art and science", "Strategy"],
       languages: ["en"],
       summary: "The classic treatise on strategy, preparation and winning without unnecessary conflict.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/132/pg132.cover.medium.jpg",
+      coverUrl: "assets/covers/pg132.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/132",
       downloadCount: 0,
       copyright: false,
@@ -152,7 +152,7 @@
       subjects: ["Solitude", "Nature", "Simplicity"],
       languages: ["en"],
       summary: "Two years beside a Massachusetts pond, and a quiet argument for living deliberately.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/205/pg205.cover.medium.jpg",
+      coverUrl: "assets/covers/pg205.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/205",
       downloadCount: 0,
       copyright: false,
@@ -174,7 +174,7 @@
       subjects: ["Portraits", "Conduct of life"],
       languages: ["en"],
       summary: "A beautiful portrait ages while its subject does not, in Wilde's sharp study of vanity and consequence.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/174/pg174.cover.medium.jpg",
+      coverUrl: "assets/covers/pg174.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/174",
       downloadCount: 0,
       copyright: false,
@@ -196,7 +196,7 @@
       subjects: ["Vampires", "Transylvania (Romania)"],
       languages: ["en"],
       summary: "Letters, diaries and newspaper clippings assemble the hunt for a predator who has come to England.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/345/pg345.cover.medium.jpg",
+      coverUrl: "assets/covers/pg345.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/345",
       downloadCount: 0,
       copyright: false,
@@ -218,7 +218,7 @@
       subjects: ["Prose poems", "Wisdom"],
       languages: ["en"],
       summary: "Twenty-six poetic essays on love, work, freedom and grief, spoken by a prophet before he departs.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/58585/pg58585.cover.medium.jpg",
+      coverUrl: "assets/covers/pg58585.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/58585",
       downloadCount: 0,
       copyright: false,
@@ -240,7 +240,7 @@
       subjects: ["Superman", "Philosophy"],
       languages: ["en"],
       summary: "A prophet descends from the mountains with a challenging, lyrical call to create one's own values.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/1998/pg1998.cover.medium.jpg",
+      coverUrl: "assets/covers/pg1998.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/1998",
       downloadCount: 0,
       copyright: false,
@@ -262,7 +262,7 @@
       subjects: ["American dream", "Long Island (N.Y.)"],
       languages: ["en"],
       summary: "A mysterious millionaire throws lavish parties in pursuit of a past he cannot repeat.",
-      coverUrl: "https://www.gutenberg.org/cache/epub/64317/pg64317.cover.medium.jpg",
+      coverUrl: "assets/covers/pg64317.jpg",
       sourceUrl: "https://www.gutenberg.org/ebooks/64317",
       downloadCount: 0,
       copyright: false,
@@ -285,7 +285,7 @@
       subjects: ["Subconscious mind", "Self-realization"],
       languages: ["en"],
       summary: "A practical exploration of how subconscious beliefs shape health, relationships and achievement.",
-      coverUrl: "https://covers.openlibrary.org/b/id/6553019-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-subconscious.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Power%20of%20Your%20Subconscious%20Mind%20Joseph%20Murphy",
       downloadCount: 0,
       copyright: true,
@@ -309,7 +309,7 @@
       subjects: ["Time management", "Lifestyle design"],
       languages: ["en"],
       summary: "A productivity playbook about escaping the office, automating work and designing a deliberate lifestyle.",
-      coverUrl: "https://covers.openlibrary.org/b/id/539652-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-4-hour-workweek.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%204-Hour%20Workweek%20Timothy%20Ferriss",
       downloadCount: 0,
       copyright: true,
@@ -333,7 +333,7 @@
       subjects: ["Wealth", "Happiness", "Decision making"],
       languages: ["en"],
       summary: "A curated collection of Naval Ravikant's ideas on building wealth, judgement and a calmer life.",
-      coverUrl: "https://covers.openlibrary.org/b/id/10449931-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-almanack-naval.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Almanack%20of%20Naval%20Ravikant%20Eric%20Jorgenson",
       downloadCount: 0,
       copyright: true,
@@ -357,7 +357,7 @@
       subjects: ["Conduct of life", "Wealth", "Self-reliance"],
       languages: ["en"],
       summary: "Emerson's 1860 essay on work, money and the conduct of life, taken from The Conduct of Life.",
-      coverUrl: "https://covers.openlibrary.org/b/id/1852327-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-wealth-emerson.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Conduct%20of%20Life%20Ralph%20Waldo%20Emerson",
       downloadCount: 0,
       copyright: false,
@@ -381,7 +381,7 @@
       subjects: ["New Thought", "Success", "Self-help"],
       languages: ["en"],
       summary: "A 1925 classic about thought, faith and the everyday practice of shaping a fulfilling life.",
-      coverUrl: "https://covers.openlibrary.org/b/id/406958-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-game-of-life.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Game%20of%20Life%20and%20How%20to%20Play%20It%20Florence%20Scovel%20Shinn",
       downloadCount: 0,
       copyright: false,
@@ -405,7 +405,7 @@
       subjects: ["Success", "Wealth", "Personal development"],
       languages: ["en"],
       summary: "A classic success manual built around desire, persistence and a definite plan.",
-      coverUrl: "https://covers.openlibrary.org/b/id/14542536-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-think-and-grow-rich.svg",
       sourceUrl: "https://openlibrary.org/search?q=Think%20and%20Grow%20Rich%20Napoleon%20Hill",
       downloadCount: 0,
       copyright: false,
@@ -429,7 +429,7 @@
       subjects: ["Habit formation", "Behaviour change", "Productivity"],
       languages: ["en"],
       summary: "A practical framework for building small habits that compound into meaningful change.",
-      coverUrl: "https://covers.openlibrary.org/b/id/12539702-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-atomic-habits.svg",
       sourceUrl: "https://openlibrary.org/search?q=Atomic%20Habits%20James%20Clear",
       downloadCount: 0,
       copyright: true,
@@ -453,7 +453,7 @@
       subjects: ["Finance, Personal", "Saving and investment", "Parables"],
       languages: ["en"],
       summary: "Ancient-Babylonian parables about paying yourself first, living below your means and making money work for you.",
-      coverUrl: "https://covers.openlibrary.org/b/id/10491331-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-richest-man-babylon.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Richest%20Man%20in%20Babylon%20George%20S.%20Clason",
       downloadCount: 0,
       copyright: false,
@@ -477,7 +477,7 @@
       subjects: ["Success", "Wealth", "New Thought"],
       languages: ["en"],
       summary: "Wattles' 1910 treatise on creative thought, gratitude and purposeful action as the basis of prosperity.",
-      coverUrl: "https://covers.openlibrary.org/b/id/854989-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-science-getting-rich.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Science%20of%20Getting%20Rich%20Wallace%20D.%20Wattles",
       downloadCount: 0,
       copyright: false,
@@ -501,7 +501,7 @@
       subjects: ["Money", "Success", "Conduct of life"],
       languages: ["en"],
       summary: "The showman's 1880 lecture on golden rules for earning, keeping and spending money wisely.",
-      coverUrl: "https://covers.openlibrary.org/b/id/756095-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-art-of-money-getting.svg",
       sourceUrl: "https://openlibrary.org/search?q=The%20Art%20of%20Money%20Getting%20P.%20T.%20Barnum",
       downloadCount: 0,
       copyright: false,
@@ -525,7 +525,7 @@
       subjects: ["Thought and thinking", "Self-culture", "Character"],
       languages: ["en"],
       summary: "A short 1902 essay on how thought shapes character, circumstance and achievement.",
-      coverUrl: "https://covers.openlibrary.org/b/id/6268048-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-as-a-man-thinketh.svg",
       sourceUrl: "https://openlibrary.org/search?q=As%20a%20Man%20Thinketh%20James%20Allen",
       downloadCount: 0,
       copyright: false,
@@ -549,7 +549,7 @@
       subjects: ["Success", "Opportunity", "Self-help"],
       languages: ["en"],
       summary: "Conwell's celebrated lecture on finding opportunity close to home instead of searching elsewhere.",
-      coverUrl: "https://covers.openlibrary.org/b/id/5833160-L.jpg",
+      coverUrl: "assets/premium/covers/premium-reader-acres-of-diamonds.svg",
       sourceUrl: "https://openlibrary.org/search?q=Acres%20of%20Diamonds%20Russell%20H.%20Conwell",
       downloadCount: 0,
       copyright: false,
@@ -557,6 +557,79 @@
       reader: {
         engine: "pdf",
         sourceUrl: "assets/premium/acres-of-diamonds.pdf",
+        mimeType: "application/pdf"
+      }
+    },
+    {
+      key: "premium-reader-psychology-of-selling",
+      id: "premium-reader-psychology-of-selling",
+      source: "bundled",
+      premium: true,
+      collection: "Reader editions",
+      title: "The Psychology of Selling",
+      author: "Brian Tracy",
+      authors: ["Brian Tracy"],
+      category: "Sales",
+      subjects: ["Selling", "Persuasion", "Communication"],
+      languages: ["en"],
+      summary: "Brian Tracy's field guide to selling: building trust, handling objections and closing with confidence.",
+      coverUrl: "assets/premium/covers/premium-reader-psychology-of-selling.svg",
+      sourceUrl: "https://openlibrary.org/search?q=The%20Psychology%20of%20Selling%20Brian%20Tracy",
+      downloadCount: 0,
+      copyright: true,
+      rights: "User-supplied PDF",
+      reader: {
+        engine: "pdf",
+        sourceUrl: "assets/premium/the-psychology-of-selling.pdf",
+        mimeType: "application/pdf"
+      }
+    },
+    {
+      key: "premium-reader-no-excuses",
+      id: "premium-reader-no-excuses",
+      source: "bundled",
+      premium: true,
+      collection: "Reader editions",
+      title: "No Excuses!",
+      subtitle: "The Power of Self-Discipline",
+      author: "Brian Tracy",
+      authors: ["Brian Tracy"],
+      category: "Discipline",
+      subjects: ["Self-discipline", "Habits", "Goal setting"],
+      languages: ["en"],
+      summary: "A twenty-one chapter program for building the discipline that turns intentions into finished work.",
+      coverUrl: "assets/premium/covers/premium-reader-no-excuses.svg",
+      sourceUrl: "https://openlibrary.org/search?q=No%20Excuses%20The%20Power%20of%20Self-Discipline%20Brian%20Tracy",
+      downloadCount: 0,
+      copyright: true,
+      rights: "User-supplied PDF",
+      reader: {
+        engine: "pdf",
+        sourceUrl: "assets/premium/no-excuses-the-power-of-self-discipline.pdf",
+        mimeType: "application/pdf"
+      }
+    },
+    {
+      key: "premium-reader-million-dollar-habits",
+      id: "premium-reader-million-dollar-habits",
+      source: "bundled",
+      premium: true,
+      collection: "Reader editions",
+      title: "Million Dollar Habits",
+      author: "Brian Tracy",
+      authors: ["Brian Tracy"],
+      category: "Success habits",
+      subjects: ["Habits", "Success", "Personal development"],
+      languages: ["en"],
+      summary: "How everyday habits decide income, health and relationships, and how to replace the ones holding you back.",
+      coverUrl: "assets/premium/covers/premium-reader-million-dollar-habits.svg",
+      sourceUrl: "https://openlibrary.org/search?q=Million%20Dollar%20Habits%20Brian%20Tracy",
+      downloadCount: 0,
+      copyright: true,
+      rights: "User-supplied PDF",
+      reader: {
+        engine: "pdf",
+        sourceUrl: "assets/premium/million-dollar-habits.pdf",
         mimeType: "application/pdf"
       }
     }
@@ -573,7 +646,7 @@
       author: "Robert T. Kiyosaki",
       category: "Personal finance",
       summary: "A memoir-style introduction to financial literacy, assets and the money habits taught at home.",
-      coverUrl: "https://covers.openlibrary.org/b/id/8315603-L.jpg",
+      coverUrl: "assets/covers/ol-8315603.jpg",
       sourceUrl: "https://openlibrary.org/search?q=Rich%20Dad%20Poor%20Dad%20Robert%20Kiyosaki",
       rights: "Copyrighted"
     },
@@ -583,7 +656,7 @@
       author: "Stephen R. Covey",
       category: "Personal development",
       summary: "A principle-centered approach to personal leadership, priorities and effective relationships.",
-      coverUrl: "https://covers.openlibrary.org/b/id/10079937-L.jpg",
+      coverUrl: "assets/covers/ol-10079937.jpg",
       sourceUrl: "https://openlibrary.org/search?q=The%207%20Habits%20of%20Highly%20Effective%20People%20Stephen%20Covey",
       rights: "Copyrighted"
     },
@@ -593,7 +666,7 @@
       author: "Dale Carnegie",
       category: "Communication",
       summary: "Practical advice on listening, appreciation and building cooperative relationships.",
-      coverUrl: "https://covers.openlibrary.org/b/id/13314878-L.jpg",
+      coverUrl: "assets/covers/ol-13314878.jpg",
       sourceUrl: "https://openlibrary.org/search?q=How%20to%20Win%20Friends%20and%20Influence%20People%20Dale%20Carnegie",
       rights: "Copyrighted"
     }
@@ -957,7 +1030,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Jane Austen, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/1342/pg1342.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg1342.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/1342",
           "downloadCount": 208430,
           "copyright": false,
@@ -987,7 +1060,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Mary Wollstonecraft Shelley, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/84/pg84.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg84.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/84",
           "downloadCount": 182729,
           "copyright": false,
@@ -1017,7 +1090,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Herman Melville, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/2701/pg2701.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg2701.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/2701",
           "downloadCount": 172569,
           "copyright": false,
@@ -1047,7 +1120,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Lewis Carroll, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/11/pg11.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg11.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/11",
           "downloadCount": 121623,
           "copyright": false,
@@ -1076,7 +1149,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Arthur Conan Doyle, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg1661.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/1661",
           "downloadCount": 96353,
           "copyright": false,
@@ -1103,7 +1176,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Unknown author, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/37683/pg37683.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg37683.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/37683",
           "downloadCount": 94005,
           "copyright": false,
@@ -1133,7 +1206,7 @@
             "en"
           ],
           "summary": "An English public-domain title by William Shakespeare, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/1513/pg1513.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg1513.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/1513",
           "downloadCount": 81893,
           "copyright": false,
@@ -1163,7 +1236,7 @@
             "en"
           ],
           "summary": "An English public-domain title by Bram Stoker, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/345/pg345.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg345.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/345",
           "downloadCount": 78131,
           "copyright": false,
@@ -1196,7 +1269,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by André Theuriet, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78027/pg78027.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78027.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78027",
           "downloadCount": 47001,
           "copyright": false,
@@ -1226,7 +1299,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Gaston Leroux, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/62215/pg62215.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg62215.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/62215",
           "downloadCount": 38259,
           "copyright": false,
@@ -1256,7 +1329,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Jack London, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78041/pg78041.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78041.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78041",
           "downloadCount": 24825,
           "copyright": false,
@@ -1283,7 +1356,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Maurice Magre, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78064/pg78064.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78064.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78064",
           "downloadCount": 24659,
           "copyright": false,
@@ -1313,7 +1386,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Jean Froissart, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78074/pg78074.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78074.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78074",
           "downloadCount": 24510,
           "copyright": false,
@@ -1340,7 +1413,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Pierre Drieu La Rochelle, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78063/pg78063.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78063.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78063",
           "downloadCount": 24508,
           "copyright": false,
@@ -1370,7 +1443,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Tolstoy, Leo, graf, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78069/pg78069.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78069.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78069",
           "downloadCount": 24490,
           "copyright": false,
@@ -1399,7 +1472,7 @@
             "fr"
           ],
           "summary": "A French public-domain title by Georges Bernanos, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78021/pg78021.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78021.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78021",
           "downloadCount": 24441,
           "copyright": false,
@@ -1432,7 +1505,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Max Verworn, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78079/pg78079.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78079.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78079",
           "downloadCount": 24849,
           "copyright": false,
@@ -1460,7 +1533,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Josef Kyselak, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78026/pg78026.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78026.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78026",
           "downloadCount": 24829,
           "copyright": false,
@@ -1487,7 +1560,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Wilhelm von Polenz, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78125/pg78125.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78125.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78125",
           "downloadCount": 24517,
           "copyright": false,
@@ -1515,7 +1588,7 @@
             "de"
           ],
           "summary": "A German public-domain title by R. H. (Raoul Heinrich) Francé, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78056/pg78056.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78056.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78056",
           "downloadCount": 24205,
           "copyright": false,
@@ -1543,7 +1616,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Robert Falke, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78030/pg78030.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78030.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78030",
           "downloadCount": 24114,
           "copyright": false,
@@ -1571,7 +1644,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Franz Kafka, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/22367/pg22367.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg22367.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/22367",
           "downloadCount": 15564,
           "copyright": false,
@@ -1598,7 +1671,7 @@
             "de"
           ],
           "summary": "A German public-domain title by Hans Kaltneker, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/66452/pg66452.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg66452.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/66452",
           "downloadCount": 14525,
           "copyright": false,
@@ -1627,7 +1700,7 @@
             "en"
           ],
           "summary": "A German public-domain title by Ludwig Wittgenstein, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/5740/pg5740.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg5740.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/5740",
           "downloadCount": 13240,
           "copyright": false,
@@ -1659,7 +1732,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Fyodor Dostoyevsky, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/61851/pg61851.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg61851.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/61851",
           "downloadCount": 29958,
           "copyright": false,
@@ -1689,7 +1762,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Victor Hugo, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78068/pg78068.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78068.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78068",
           "downloadCount": 25344,
           "copyright": false,
@@ -1716,7 +1789,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Miguel de Unamuno, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78052/pg78052.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78052.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78052",
           "downloadCount": 24924,
           "copyright": false,
@@ -1746,7 +1819,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Miguel de Cervantes Saavedra, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/2000/pg2000.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg2000.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/2000",
           "downloadCount": 23030,
           "copyright": false,
@@ -1774,7 +1847,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Homer, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/58221/pg58221.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg58221.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/58221",
           "downloadCount": 7904,
           "copyright": false,
@@ -1802,7 +1875,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Aesop, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/21144/pg21144.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg21144.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/21144",
           "downloadCount": 7219,
           "copyright": false,
@@ -1833,7 +1906,7 @@
             "tl"
           ],
           "summary": "A Spanish public-domain title by Sofronio G. Calderón, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/20738/pg20738.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg20738.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/20738",
           "downloadCount": 6454,
           "copyright": false,
@@ -1861,7 +1934,7 @@
             "es"
           ],
           "summary": "A Spanish public-domain title by Aesop, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/21143/pg21143.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg21143.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/21143",
           "downloadCount": 5410,
           "copyright": false,
@@ -1894,7 +1967,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Edmondo De Amicis, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/61885/pg61885.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg61885.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/61885",
           "downloadCount": 9700,
           "copyright": false,
@@ -1922,7 +1995,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Dante Alighieri, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/1012/pg1012.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg1012.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/1012",
           "downloadCount": 9121,
           "copyright": false,
@@ -1951,7 +2024,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by active 13th century Sidrac, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/44549/pg44549.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg44549.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/44549",
           "downloadCount": 5239,
           "copyright": false,
@@ -1980,7 +2053,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Carlo Collodi, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/19517/pg19517.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg19517.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/19517",
           "downloadCount": 4827,
           "copyright": false,
@@ -2009,7 +2082,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Carlo Collodi, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/52484/pg52484.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg52484.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/52484",
           "downloadCount": 3543,
           "copyright": false,
@@ -2036,7 +2109,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Guido da Verona, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/38720/pg38720.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg38720.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/38720",
           "downloadCount": 3302,
           "copyright": false,
@@ -2063,7 +2136,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Giulio Carcano, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/25178/pg25178.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg25178.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/25178",
           "downloadCount": 3251,
           "copyright": false,
@@ -2091,7 +2164,7 @@
             "it"
           ],
           "summary": "An Italian public-domain title by Adolfo Albertazzi, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/38628/pg38628.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg38628.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/38628",
           "downloadCount": 3183,
           "copyright": false,
@@ -2124,7 +2197,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Unknown author, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/62383/pg62383.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg62383.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/62383",
           "downloadCount": 47118,
           "copyright": false,
@@ -2154,7 +2227,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Machado de Assis, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/55752/pg55752.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg55752.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/55752",
           "downloadCount": 5409,
           "copyright": false,
@@ -2181,7 +2254,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Cândido de Figueiredo, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/31552/pg31552.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg31552.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/31552",
           "downloadCount": 5369,
           "copyright": false,
@@ -2211,7 +2284,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Luís de Camões, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/3333/pg3333.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg3333.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/3333",
           "downloadCount": 3735,
           "copyright": false,
@@ -2241,7 +2314,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Machado de Assis, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/54829/pg54829.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg54829.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/54829",
           "downloadCount": 2827,
           "copyright": false,
@@ -2268,7 +2341,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Manuel Pinheiro Chagas, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/23400/pg23400.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg23400.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/23400",
           "downloadCount": 2240,
           "copyright": false,
@@ -2295,7 +2368,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Eça de Queirós, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/40409/pg40409.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg40409.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/40409",
           "downloadCount": 2083,
           "copyright": false,
@@ -2322,7 +2395,7 @@
             "pt"
           ],
           "summary": "A Portuguese public-domain title by Agostinho Marques Perdigão Malheiro, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/22044/pg22044.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg22044.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/22044",
           "downloadCount": 1943,
           "copyright": false,
@@ -2356,7 +2429,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Jules Verne, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76280/pg76280.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76280.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76280",
           "downloadCount": 4939,
           "copyright": false,
@@ -2384,7 +2457,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Bernard Alexander Canter, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76346/pg76346.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76346.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76346",
           "downloadCount": 4768,
           "copyright": false,
@@ -2413,7 +2486,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76186/pg76186.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76186.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76186",
           "downloadCount": 4745,
           "copyright": false,
@@ -2442,7 +2515,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76187/pg76187.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76187.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76187",
           "downloadCount": 4655,
           "copyright": false,
@@ -2470,7 +2543,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by M. de (Matthias) Vries, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/22722/pg22722.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg22722.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/22722",
           "downloadCount": 4461,
           "copyright": false,
@@ -2500,7 +2573,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76865/pg76865.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76865.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76865",
           "downloadCount": 4239,
           "copyright": false,
@@ -2529,7 +2602,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76761/pg76761.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76761.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76761",
           "downloadCount": 4179,
           "copyright": false,
@@ -2559,7 +2632,7 @@
             "nl"
           ],
           "summary": "A Dutch public-domain title by Kurt Matull, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/76765/pg76765.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg76765.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/76765",
           "downloadCount": 4169,
           "copyright": false,
@@ -2594,7 +2667,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Kaarlo Hemmo, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78071/pg78071.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78071.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78071",
           "downloadCount": 24413,
           "copyright": false,
@@ -2622,7 +2695,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Joel Lehtonen, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78058/pg78058.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78058.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78058",
           "downloadCount": 24382,
           "copyright": false,
@@ -2649,7 +2722,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Tatu Valkonen, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78007/pg78007.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78007.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78007",
           "downloadCount": 24363,
           "copyright": false,
@@ -2676,7 +2749,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Arvid Järnefelt, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78049/pg78049.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78049.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78049",
           "downloadCount": 24342,
           "copyright": false,
@@ -2704,7 +2777,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Pentti Haanpää, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78018/pg78018.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78018.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78018",
           "downloadCount": 24316,
           "copyright": false,
@@ -2731,7 +2804,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Niilo Mantere, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78097/pg78097.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78097.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78097",
           "downloadCount": 24314,
           "copyright": false,
@@ -2760,7 +2833,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Molière, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78042/pg78042.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78042.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78042",
           "downloadCount": 24311,
           "copyright": false,
@@ -2788,7 +2861,7 @@
             "fi"
           ],
           "summary": "A Finnish public-domain title by Lauri Haarla, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/78070/pg78070.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg78070.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/78070",
           "downloadCount": 24195,
           "copyright": false,
@@ -2822,7 +2895,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Gustaf Björlin, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/65580/pg65580.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg65580.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/65580",
           "downloadCount": 3458,
           "copyright": false,
@@ -2852,7 +2925,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Marika Stiernstedt, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/74639/pg74639.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg74639.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/74639",
           "downloadCount": 1584,
           "copyright": false,
@@ -2880,7 +2953,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Toini Topelius, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/26479/pg26479.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg26479.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/26479",
           "downloadCount": 1516,
           "copyright": false,
@@ -2908,7 +2981,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Ester Blenda Nordström, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/62806/pg62806.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg62806.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/62806",
           "downloadCount": 1362,
           "copyright": false,
@@ -2937,7 +3010,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Frederick Lönnkvist, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/51613/pg51613.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg51613.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/51613",
           "downloadCount": 1360,
           "copyright": false,
@@ -2965,7 +3038,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Ester Blenda Nordström, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/48961/pg48961.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg48961.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/48961",
           "downloadCount": 1288,
           "copyright": false,
@@ -2992,7 +3065,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Anton Holtz, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/48964/pg48964.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg48964.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/48964",
           "downloadCount": 1160,
           "copyright": false,
@@ -3021,7 +3094,7 @@
             "sv"
           ],
           "summary": "A Swedish public-domain title by Gustaf af Geijerstam, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/28473/pg28473.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg28473.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/28473",
           "downloadCount": 1147,
           "copyright": false,
@@ -3054,7 +3127,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Julius Caesar, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/218/pg218.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg218.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/218",
           "downloadCount": 1760,
           "copyright": false,
@@ -3082,7 +3155,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Marcus Tullius Cicero, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/226/pg226.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg226.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/226",
           "downloadCount": 1337,
           "copyright": false,
@@ -3111,7 +3184,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/227/pg227.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg227.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/227",
           "downloadCount": 8361,
           "copyright": false,
@@ -3139,7 +3212,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/229/pg229.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg229.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/229",
           "downloadCount": 1190,
           "copyright": false,
@@ -3167,7 +3240,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Virgil, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/231/pg231.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg231.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/231",
           "downloadCount": 1228,
           "copyright": false,
@@ -3197,7 +3270,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Sextus Propertius, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/237/pg237.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg237.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/237",
           "downloadCount": 664,
           "copyright": false,
@@ -3226,7 +3299,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Philipp Melanchthon, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/607/pg607.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg607.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/607",
           "downloadCount": 602,
           "copyright": false,
@@ -3253,7 +3326,7 @@
             "la"
           ],
           "summary": "A Latin public-domain title by Anonymous, available through Project Gutenberg.",
-          "coverUrl": "https://www.gutenberg.org/cache/epub/825/pg825.cover.medium.jpg",
+          "coverUrl": "assets/covers/pg825.jpg",
           "sourceUrl": "https://www.gutenberg.org/ebooks/825",
           "downloadCount": 681,
           "copyright": false,

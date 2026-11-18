@@ -38,11 +38,15 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Project Gutenberg's pglaf mirror is the reliable cover host; the main
+         site answers many cover requests with 503. Warm the connection early. -->
+    <link rel="preconnect" href="https://gutenberg.pglaf.org" />
+    <link rel="dns-prefetch" href="https://gutenberg.pglaf.org" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:wght@400;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=32" />
+    <link rel="stylesheet" href="css/styles.css?v=34" />
 
     <script>
       // Apply the saved interface theme before first paint so the shell never
@@ -347,11 +351,11 @@
       window.pdfjsLib = pdfjsLib;
       window.dispatchEvent(new Event("pdfjs-ready"));
     </script>
-    <script src="js/vendor/qrcode.js?v=32" defer></script>
-    <script src="js/data.js?v=32" defer></script>
-    <script src="js/api.js?v=32" defer></script>
-    <script src="js/backend.js?v=32" defer></script>
-    <script src="js/reader.js?v=32" defer></script>
-    <script src="js/app.js?v=32" defer></script>
+    <script src="js/vendor/qrcode.js?v=34" defer></script>
+    <script src="js/data.js?v=34" defer></script>
+    <script src="js/api.js?v=34" defer></script>
+    <script src="js/backend.js?v=34" defer></script>
+    <script src="js/reader.js?v=34" defer></script>
+    <script src="js/app.js?v=34" defer></script>
   </body>
 </html>

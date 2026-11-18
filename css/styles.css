@@ -3135,6 +3135,12 @@ body.reader-mode {
 .cover-plate-image {
   position: relative;
   z-index: 2;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.cover-plate-image.is-loaded {
+  opacity: 1;
 }
 
 .cover-plate {
