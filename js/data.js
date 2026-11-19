@@ -632,6 +632,59 @@
         sourceUrl: "assets/premium/million-dollar-habits.pdf",
         mimeType: "application/pdf"
       }
+    },
+    {
+      key: "premium-reader-discovery-of-india",
+      id: "premium-reader-discovery-of-india",
+      source: "bundled",
+      premium: true,
+      collection: "Reader editions",
+      title: "The Discovery of India",
+      author: "Jawaharlal Nehru",
+      authors: ["Jawaharlal Nehru"],
+      category: "Indian history",
+      subjects: ["India -- History", "Civilization", "Nationalism"],
+      languages: ["en"],
+      language: "en",
+      summary: "Nehru's 1946 survey of India's past, from the Indus valley and the Vedas to the freedom movement, written during his imprisonment at Ahmednagar.",
+      coverUrl: "assets/premium/covers/premium-reader-discovery-of-india.svg",
+      sourceUrl: "https://openlibrary.org/search?q=The%20Discovery%20of%20India%20Jawaharlal%20Nehru",
+      downloadCount: 0,
+      copyright: true,
+      rights: "User-supplied PDF",
+      reader: {
+        engine: "pdf",
+        sourceUrl: "assets/premium/the-discovery-of-india.pdf",
+        mimeType: "application/pdf"
+      }
+    },
+    {
+      key: "premium-reader-bharat-ki-khoj",
+      id: "premium-reader-bharat-ki-khoj",
+      source: "bundled",
+      premium: true,
+      collection: "Reader editions",
+      title: "भारत की खोज",
+      subtitle: "संक्षिप्त संस्करण",
+      author: "जवाहरलाल नेहरू",
+      authors: ["जवाहरलाल नेहरू"],
+      category: "भारतीय इतिहास",
+      categoryEn: "Indian history",
+      subjects: ["भारत -- इतिहास", "सभ्यता", "राष्ट्रवाद"],
+      languages: ["hi"],
+      language: "hi",
+      hindi: true,
+      summary: "नेहरू की 'डिस्कवरी ऑफ इंडिया' का हिंदी संक्षिप्त संस्करण: भारत के इतिहास, संस्कृति और स्वतंत्रता संग्राम की कहानी.",
+      coverUrl: "assets/premium/covers/premium-reader-bharat-ki-khoj.svg",
+      sourceUrl: "https://openlibrary.org/search?q=The%20Discovery%20of%20India%20Jawaharlal%20Nehru",
+      downloadCount: 0,
+      copyright: true,
+      rights: "User-supplied PDF",
+      reader: {
+        engine: "pdf",
+        sourceUrl: "assets/premium/bharat-ki-khoj.pdf",
+        mimeType: "application/pdf"
+      }
     }
   ];
 
@@ -960,8 +1013,11 @@
       summary: "भैरव और भैरवी के संवाद में चेतना, ध्यान और आत्मबोध के साधन — कश्मीर शैव परंपरा का प्रमुख तंत्र ग्रंथ।",
       archiveId: "vigyan-bhairav-tantra-hindi-book",
       archiveFile: "VIGYAN BHAIRAV (RUDRYAMAL TANTRA KA GOOD REHASYA)_djvu.txt"
-    })
-  ];
+    }),
+    /* The Hindi PDF edition is also listed on the premium shelf; this entry
+       makes it discoverable through the Hindi language browse. */
+    premiumBooks.find((book) => book.key === "premium-reader-bharat-ki-khoj")
+  ].filter(Boolean);
 
   /* A small bundled shelf used only when Gutendex cannot be reached and no
      cached results exist. These are public-domain Project Gutenberg editions

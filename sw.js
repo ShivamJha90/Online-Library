@@ -7,7 +7,7 @@
  */
 "use strict";
 
-const VERSION = "v37";
+const VERSION = "v38";
 const SHELL_CACHE = `scholarscroll-shell-${VERSION}`;
 const RUNTIME_CACHE = `scholarscroll-runtime-${VERSION}`;
 const API_CACHE = `scholarscroll-api-${VERSION}`;
@@ -15,13 +15,13 @@ const API_CACHE = `scholarscroll-api-${VERSION}`;
 const SHELL_ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=39",
-  "./js/data.js?v=39",
-  "./js/api.js?v=39",
-  "./js/backend.js?v=39",
-  "./js/reader.js?v=39",
-  "./js/app.js?v=39",
-  "./js/vendor/qrcode.js?v=39",
+  "./css/styles.css?v=40",
+  "./js/data.js?v=40",
+  "./js/api.js?v=40",
+  "./js/backend.js?v=40",
+  "./js/reader.js?v=40",
+  "./js/app.js?v=40",
+  "./js/vendor/qrcode.js?v=40",
   "./manifest.webmanifest",
   "./assets/logo-96.png",
   "./assets/favicon-32.png",

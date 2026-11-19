@@ -1155,7 +1155,6 @@
               <div class="reader-setting reader-setting-note">
                 <span>Protection</span>
                 <small id="reader-watermark-code">Loading your watermark…</small>
-                <p>Pages are stamped with your account, a per-session code and the time. A browser cannot stop a phone's own screenshot tool, but every copy stays traceable.</p>
               </div>
             </div>
             <div class="reader-progress-track" aria-hidden="true"><div class="reader-progress-fill" id="reader-progress-fill"></div></div>

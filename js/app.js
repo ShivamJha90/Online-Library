@@ -3339,14 +3339,6 @@
         }
       });
       this.reader.open(this.prepareReaderBook(book));
-      if (!this.protectionNoticeShown) {
-        this.protectionNoticeShown = true;
-        this.toast.show(
-          "Protected view: every page carries your account watermark and a time stamp. A browser cannot stop an operating-system screenshot, but a shared copy stays traceable.",
-          "info",
-          8000
-        );
-      }
       this.renderChrome();
       this.updateDocumentMeta(book.hindi ? this.routes.hindi : this.routes.catalog, book);
     }
@@ -3956,6 +3948,8 @@
     hindiBookCard(book) {
       const source = safeUrl(book.sourceUrl);
       const canRead = Boolean(book.reader);
+      const premium = Boolean(book.premium);
+      const unlocked = premium && Boolean(this.store.currentUser && this.store.hasPremiumAccess(book.key));
       return `
         <article class="hindi-book-card">
           <div class="hindi-cover-stage">
@@ -3963,13 +3957,13 @@
             <span class="hindi-cover-badge">${escapeHTML(book.category)}</span>
           </div>
           <div class="hindi-card-body">
-            <span class="hindi-kicker">${escapeHTML(book.category)}</span>
+            <span class="hindi-kicker">${escapeHTML(book.category)}${premium ? " · प्रीमियम" : ""}</span>
             <h2>${escapeHTML(book.title)}</h2>
             <p class="hindi-author">${escapeHTML(book.author)}</p>
             <p class="hindi-summary">${escapeHTML(book.summary)}</p>
             <div class="hindi-actions">
               ${canRead
-                ? `<button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}">पढ़ना शुरू करें</button>`
+                ? `<button class="button" type="button" data-action="read-book" data-book-key="${escapeHTML(book.key)}">${premium && !unlocked ? "प्रीमियम में पढ़ें" : "पढ़ना शुरू करें"}</button>`
                 : (source
                   ? `<a class="button button-secondary" href="${escapeHTML(source)}" target="_blank" rel="noopener noreferrer">स्रोत देखें</a>`
                   : `<button class="button button-secondary" type="button" disabled>स्रोत उपलब्ध नहीं</button>`)}
@@ -4083,7 +4077,7 @@
               <header class="section-heading">
                 <div>
                   <p class="page-kicker">PDF reader editions</p>
-                  <h2 id="premium-reader-shelf-title">Modern mindset &amp; money shelf</h2>
+                  <h2 id="premium-reader-shelf-title">History, mindset &amp; money shelf</h2>
                 </div>
                 <span class="premium-rights-badge">${readerBackendOnly ? "Backend required" : "PDF edition"}</span>
               </header>
@@ -4153,7 +4147,7 @@
             <span class="premium-access-badge ${unlocked ? "" : "premium-access-badge-muted"}">${escapeHTML(needsBackend ? "Backend required" : unlocked ? accessLabel : edition)}</span>
           </div>
           <div class="premium-card-body">
-            <span class="book-category">${escapeHTML(book.category)}</span>
+            <span class="book-category">${escapeHTML(book.categoryEn || book.category)}</span>
             <h2>${escapeHTML(book.title)}</h2>
             <p class="premium-author">${escapeHTML(book.author)}</p>
             <p class="premium-summary">${escapeHTML(book.summary)}</p>
