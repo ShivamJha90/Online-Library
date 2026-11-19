@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-11-19",
+  "note": "Bundled public-domain Hindi editions served from this origin so the reader opens instantly and works offline. Keys listed here are gzipped UTF-8 text files; the reader decompresses them in the browser.",
+  "files": [
+    "hindi-andher-nagari",
+    "hindi-bhagavad-gita",
+    "hindi-bhagwat-puran",
+    "hindi-bharatiya-vigyan",
+    "hindi-chanakya-niti",
+    "hindi-charak-samhita",
+    "hindi-divya-darshan",
+    "hindi-godaan",
+    "hindi-hitopadesh",
+    "hindi-jyotish-ratnakar",
+    "hindi-kabir-bijak",
+    "hindi-mahabharat-ashramvasik",
+    "hindi-mahabharat-shalya",
+    "hindi-panchatantra",
+    "hindi-panchatantra-vistar",
+    "hindi-premchand-stories",
+    "hindi-purva-madhyakalin-bharat",
+    "hindi-ramcharitmanas",
+    "hindi-samagra-vyakarana",
+    "hindi-satya-ke-prayog",
+    "hindi-shiv-puran",
+    "hindi-surdas",
+    "hindi-valmiki-ramayan",
+    "hindi-vigyan-bhairav",
+    "hindi-vishnu-puran",
+    "hindi-yoga-vasistha"
+  ]
+}

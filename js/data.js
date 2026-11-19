@@ -3429,7 +3429,8 @@
         theme: "paper",
         lineHeight: 1.95,
         pdfZoom: 1,
-        layout: "portrait"
+        layout: "auto",
+        layoutExplicit: false
       }
     }
   });
@@ -3451,6 +3452,13 @@
     BACKEND_PORT: 8000,
     GUTENDEX_BASE_URL: "https://gutendex.com/books/",
     TEXT_PROXY_BASE_URL: "https://r.jina.ai/",
+    /* Same-origin proxy deployed with this site (api/text.js). Local static
+       servers answer 404, which just moves the reader to its mirror chain. */
+    TEXT_PROXY_ENDPOINT: "/api/text?url=",
+    /* Gutenberg answers www.gutenberg.org with 503 for most text and cover
+       requests; the pglaf mirror is the reliable host. */
+    TEXT_MIRROR_TEMPLATE: "https://gutenberg.pglaf.org/cache/epub/{id}/pg{id}.txt",
+    TEXT_CACHE_NAME: "scholarscroll-text-v1",
     PDF_JS_VERSION: "6.4.299",
     CACHE_DATABASE_NAME: "scholarscroll-document-cache",
     CACHE_STORE_NAME: "documents",

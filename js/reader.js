@@ -91,6 +91,238 @@
     }
   };
 
+  /**
+   * Text sources are fetched through the same-origin proxy when the site has
+   * one, then through the public reader mirror, and only then directly. The
+   * mirror matters because www.gutenberg.org answers most requests with 503
+   * and does not send CORS headers at all.
+   */
+  const textSourceCandidates = (sourceUrl) => {
+    const primary = safeDocumentUrl(sourceUrl);
+    if (!primary) return [];
+    const idMatch = primary.match(/(?:ebooks|cache\/epub|files)\/(\d+)/i);
+    const candidates = [];
+    if (idMatch) candidates.push(Config.TEXT_MIRROR_TEMPLATE.replace(/\{id\}/g, idMatch[1]));
+    candidates.push(primary);
+    return [...new Set(candidates)];
+  };
+
+  const textTransports = (url) => {
+    const host = (() => { try { return new URL(url).hostname; } catch { return ""; } })();
+    // Bundled editions live on this origin, so there is nothing to proxy.
+    if (url.startsWith(window.location.origin)) return [{ id: "direct", url }];
+    const proxyEndpoint = String(Config.TEXT_PROXY_ENDPOINT || "");
+    const readerProxy = String(Config.TEXT_PROXY_BASE_URL || "");
+    const sameOrigin = proxyEndpoint && /^https?:$/.test(window.location.protocol)
+      ? { id: "site", url: `${proxyEndpoint}${encodeURIComponent(url)}` }
+      : null;
+    const jina = readerProxy ? { id: "mirror-proxy", url: `${readerProxy}${url}` } : null;
+    const direct = { id: "direct", url };
+    // Archive.org sends CORS headers, so it never needs a proxy first.
+    if (host.endsWith("archive.org")) return [direct, sameOrigin, jina].filter(Boolean);
+    return [sameOrigin, jina, direct].filter(Boolean);
+  };
+
+  const isGzipBytes = (bytes) => {
+    if (!bytes || bytes.byteLength < 2) return false;
+    const head = new Uint8Array(bytes, 0, 2);
+    return head[0] === 0x1f && head[1] === 0x8b;
+  };
+
+  /** Bundled Hindi editions are gzipped to keep the repository small. */
+  const gunzipBytes = async (bytes) => {
+    if (typeof DecompressionStream !== "function") {
+      throw new Error("This browser cannot open the compressed bundled edition.");
+    }
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return new Response(stream).arrayBuffer();
+  };
+
+  const fetchWithTimeout = async (url, timeoutMs) => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, {
+        headers: { Accept: "text/plain,text/html;q=0.8" },
+        credentials: "omit",
+        cache: "default",
+        referrerPolicy: "no-referrer",
+        signal: controller.signal
+      });
+    } finally {
+      window.clearTimeout(timer);
+    }
+  };
+
+  /** Remove the small header r.jina.ai places above mirrored text. */
+  const stripProxyPrelude = (text) => {
+    const value = String(text || "");
+    if (!/^\s*Title:/i.test(value) || !/URL Source:/i.test(value.slice(0, 800))) return value;
+    const marker = value.indexOf("Markdown Content:");
+    if (marker >= 0) return value.slice(marker + "Markdown Content:".length).replace(/^\s*\n/, "");
+    return value
+      .replace(/^\s*Title:[^\n]*\n?/i, "")
+      .replace(/^\s*URL Source:[^\n]*\n?/i, "")
+      .trim();
+  };
+
+  /** A proxy can return HTTP 200 while the book host answered with an error page. */
+  const looksLikeBrokenText = (text) => {
+    const sample = String(text || "").slice(0, 8000);
+    if (/Temporarily Down for Maintenance|Warning: Target URL returned error|Service Unavailable|503 Service/i.test(sample)) return true;
+    if (/^\s*<(?:!doctype|html)/i.test(sample) && !/<(?:p|div|pre|h[1-6])[\s>]/i.test(sample)) return true;
+    return sample.replace(/\s/g, "").length < 400;
+  };
+
+  const textCacheAvailable = () => "caches" in window && /^https?:$/.test(window.location.protocol);
+
+  const textCacheKey = (bookKey) => new URL(
+    `/__reader-text/${encodeURIComponent(String(bookKey || "book"))}`,
+    window.location.href
+  ).href;
+
+  const readCachedText = async (bookKey) => {
+    if (!textCacheAvailable()) return null;
+    try {
+      const cache = await caches.open(Config.TEXT_CACHE_NAME || "scholarscroll-text-v1");
+      const hit = await cache.match(textCacheKey(bookKey));
+      if (!hit) return null;
+      const bytes = await hit.arrayBuffer();
+      if (!bytes.byteLength) return null;
+      return { bytes, mimeType: hit.headers.get("content-type") || "text/plain; charset=utf-8", cached: true };
+    } catch {
+      return null;
+    }
+  };
+
+  const writeCachedText = async (bookKey, result) => {
+    if (!textCacheAvailable()) return;
+    try {
+      const cache = await caches.open(Config.TEXT_CACHE_NAME || "scholarscroll-text-v1");
+      await cache.put(textCacheKey(bookKey), new Response(result.bytes.slice(0), {
+        headers: { "Content-Type": result.mimeType || "text/plain; charset=utf-8" }
+      }));
+    } catch {
+      /* Browsers refuse cache writes in private mode; the reader still works. */
+    }
+  };
+
+  /**
+   * Editions bundled under assets/text/ open instantly and work offline. The
+   * manifest is generated at build time, so deployments without it simply skip
+   * straight to the network sources below.
+   */
+  let bundledTextFiles = null;
+  const loadBundledTextManifest = () => {
+    if (!bundledTextFiles) {
+      bundledTextFiles = fetch(new URL("assets/text/manifest.json", window.location.href), {
+        cache: "force-cache",
+        credentials: "omit"
+      })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data) => new Set(Array.isArray(data?.files) ? data.files : []))
+        .catch(() => new Set());
+    }
+    return bundledTextFiles;
+  };
+
+  const bundledTextUrl = (book, files) => {
+    const key = String(book?.key || "");
+    if (!key || !files?.has(key)) return null;
+    return new URL(`assets/text/${encodeURIComponent(key)}.txt.gz`, window.location.href).href;
+  };
+
+  const pendingTextLoads = new Map();
+
+  const fetchTextAcrossMirrors = async (book, onStatus) => {
+    const bundled = bundledTextUrl(book, await loadBundledTextManifest());
+    const candidates = [
+      ...(bundled ? [bundled] : []),
+      ...textSourceCandidates(book.reader?.sourceUrl)
+    ];
+    if (!candidates.length) throw new Error("The text source URL is invalid.");
+    const deadline = Date.now() + 40000;
+    let attempt = 0;
+    let lastError = null;
+
+    for (const candidate of candidates) {
+      for (const transport of textTransports(candidate)) {
+        if (Date.now() > deadline) break;
+        attempt += 1;
+        try {
+          onStatus?.(attempt === 1
+            ? "Downloading the public-domain text…"
+            : "Trying a backup text mirror…");
+          const response = await fetchWithTimeout(transport.url, transport.id === "direct" ? 12000 : 15000);
+          if (!response.ok) throw new Error(`The text source returned HTTP ${response.status}.`);
+          const declared = Number(response.headers.get("content-length")) || 0;
+          if (declared > Config.MAX_TEXT_BYTES) throw new Error("This text exceeds the reader size limit.");
+          let bytes = await response.arrayBuffer();
+          if (!bytes.byteLength || bytes.byteLength > Config.MAX_TEXT_BYTES) throw new Error("The text response has an invalid size.");
+          if (isGzipBytes(bytes)) {
+            bytes = await gunzipBytes(bytes);
+            if (!bytes.byteLength || bytes.byteLength > Config.MAX_TEXT_BYTES) {
+              throw new Error("The bundled text exceeds the reader size limit.");
+            }
+          }
+
+          const mimeType = response.headers.get("content-type") || book.reader?.mimeType || "text/plain";
+          const rawText = decodeBytes(bytes, mimeType);
+          const cleaned = /html/i.test(mimeType) ? rawText : stripProxyPrelude(rawText);
+          if (looksLikeBrokenText(cleaned)) throw new Error("The mirror returned an error page.");
+          if (cleaned === rawText) return { bytes, mimeType };
+          return { bytes: new TextEncoder().encode(cleaned).buffer, mimeType: "text/plain; charset=utf-8" };
+        } catch (error) {
+          lastError = error;
+        }
+      }
+    }
+    throw new Error(
+      lastError?.message && lastError.message !== "Failed to fetch"
+        ? lastError.message
+        : "The book text could not be downloaded. Check the connection and try again."
+    );
+  };
+
+  /** Shared by the reader and by hover/tap prefetching in the app shell. */
+  const loadTextDocument = (book, onStatus) => {
+    const key = String(book.key || "");
+    const pending = pendingTextLoads.get(key);
+    if (pending) return pending;
+
+    const promise = (async () => {
+      const cached = await readCachedText(key);
+      if (cached) {
+        onStatus?.("Opening the cached copy…");
+        return cached;
+      }
+      onStatus?.("Downloading the public-domain text…");
+      const result = await fetchTextAcrossMirrors(book, onStatus);
+      await writeCachedText(key, result);
+      return result;
+    })();
+
+    pendingTextLoads.set(key, promise);
+    promise.catch(() => {}).finally(() => {
+      window.setTimeout(() => {
+        if (pendingTextLoads.get(key) === promise) pendingTextLoads.delete(key);
+      }, 20000);
+    });
+    return promise;
+  };
+
+  const createSessionCode = () => {
+    const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const values = new Uint8Array(8);
+    try {
+      window.crypto.getRandomValues(values);
+    } catch {
+      for (let index = 0; index < values.length; index += 1) values[index] = Math.floor(Math.random() * 256);
+    }
+    const code = [...values].map((value) => alphabet[value % alphabet.length]).join("");
+    return `SS-${code.slice(0, 4)}-${code.slice(4)}`;
+  };
+
   const ALLOWED_TAGS = new Set([
     "p", "div", "span", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6",
     "em", "strong", "i", "b", "u", "small", "blockquote", "ul", "ol", "li",
@@ -241,11 +473,12 @@
 
   /** Canvas-only PDF.js engine for browser-cached administrator uploads. */
   class PdfCanvasEngine {
-    constructor({ viewport, canvas, onLocation, getPdfJs, getViewOptions }) {
+    constructor({ viewport, canvas, onLocation, onProgress, getPdfJs, getViewOptions }) {
       this.type = "pdf";
       this.viewport = viewport;
       this.canvas = canvas;
       this.onLocation = onLocation;
+      this.onProgress = onProgress;
       this.getPdfJs = getPdfJs;
       this.getViewOptions = getViewOptions;
       this.document = null;
@@ -261,18 +494,39 @@
       this.destroyed = false;
     }
 
-    async load(bytes, record) {
-      const signature = String.fromCharCode(...new Uint8Array(bytes, 0, Math.min(5, bytes.byteLength)));
-      if (signature !== "%PDF-") throw new Error("The uploaded file is not a valid PDF document.");
-
+    async load(source, record) {
+      const bytes = source.bytes || null;
       const pdfjs = await this.getPdfJs();
-      this.loadingTask = pdfjs.getDocument({
-        data: new Uint8Array(bytes.slice(0)),
-        isEvalSupported: false,
-        useSystemFonts: true
-      });
+      const options = { isEvalSupported: false, useSystemFonts: true };
+      if (bytes?.byteLength) {
+        const signature = String.fromCharCode(...new Uint8Array(bytes, 0, Math.min(5, bytes.byteLength)));
+        if (signature !== "%PDF-") throw new Error("The uploaded file is not a valid PDF document.");
+        options.data = new Uint8Array(bytes.slice(0));
+      } else if (source.url) {
+        // Let PDF.js fetch byte ranges. The first page is painted after a few
+        // hundred kilobytes instead of waiting for a multi-megabyte file.
+        options.url = source.url;
+        options.rangeChunkSize = 262144;
+        options.disableAutoFetch = true;
+        options.disableStream = false;
+      } else {
+        throw new Error("The PDF source is invalid.");
+      }
+      this.loadingTask = pdfjs.getDocument(options);
+      // Show real byte progress while the first pages stream in; PDF.js only
+      // requests what the first render needs, so this finishes quickly.
+      this.loadingTask.onProgress = ({ loaded, total }) => {
+        if (!this.onProgress) return;
+        if (total > 0 && loaded < total) {
+          const percent = Math.min(99, Math.round((loaded / total) * 100));
+          this.onProgress(`Opening the PDF edition… ${percent}%`);
+        } else {
+          this.onProgress("Rendering the first page…");
+        }
+      };
       this.document = await this.loadingTask.promise;
       this.totalPages = this.document.numPages;
+      this.onProgress?.(`Rendering page 1 of ${this.totalPages}…`);
       this.currentPage = Math.min(Math.max(1, Number(record.lastVisitedPage) || 1), this.totalPages);
       await this.render(this.currentPage);
     }
@@ -292,18 +546,26 @@
       const baseViewport = page.getViewport({ scale: 1 });
       const options = this.getViewOptions?.() || {};
       const zoom = clamp(Number(options.zoom) || 1, 0.5, 2.5);
-      const landscape = options.layout === "landscape";
-      const availableWidth = Math.max(280, Math.min(this.viewport.clientWidth - 48, landscape ? 1400 : 980));
-      const availableHeight = Math.max(320, this.viewport.clientHeight - 48);
-      // Portrait fits the page width and scrolls vertically. Landscape fits the
-      // full page height so the whole spread is visible at once.
-      const fitScale = landscape
+      const mode = ["auto", "portrait", "landscape"].includes(options.layout) ? options.layout : "auto";
+      const wholePage = mode === "landscape";
+      const widthCap = mode === "portrait" ? 980 : 1600;
+      const availableWidth = Math.max(240, Math.min(
+        this.viewport.clientWidth - (window.innerWidth <= 760 ? 16 : 48),
+        widthCap
+      ));
+      const availableHeight = Math.max(280, this.viewport.clientHeight - (window.innerWidth <= 760 ? 24 : 48));
+      // Auto and portrait fit the reading width, so a phone held sideways uses
+      // the whole landscape screen; the page then scrolls vertically and its
+      // end becomes the next-page gesture. Landscape fits the whole page.
+      const fitScale = wholePage
         ? Math.min(availableHeight / baseViewport.height, availableWidth / baseViewport.width)
         : availableWidth / baseViewport.width;
       const viewport = page.getViewport({ scale: fitScale * zoom });
       const outputScale = Math.min(window.devicePixelRatio || 1, 2);
       const context = this.canvas.getContext("2d", { alpha: false });
       if (!context) throw new Error("Canvas rendering is unavailable.");
+
+      this.canvas.dataset.layout = mode;
 
       this.canvas.width = Math.floor(viewport.width * outputScale);
       this.canvas.height = Math.floor(viewport.height * outputScale);
@@ -756,6 +1018,14 @@
       this.lastLocation = null;
       this.lastSavedAt = 0;
       this.destroyed = false;
+      this.sessionCode = createSessionCode();
+      this.watermarkPageKey = "";
+      this.gestureCooldownUntil = 0;
+      this.wheelAccumulator = 0;
+      this.wheelResetTimer = null;
+      this.loadingClock = null;
+      this.loadingMessage = "";
+      this.loadingStartedAt = 0;
       this.handleResize = this.handleResize.bind(this);
       this.handleKeydown = this.handleKeydown.bind(this);
       this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
@@ -777,13 +1047,14 @@
       // tied to a rough time as well as to the signed-in account.
       window.clearInterval(this.watermarkTimer);
       this.watermarkTimer = window.setInterval(() => this.renderWatermark(), 60000);
+      this.startLoadingClock();
       this.applyPreferences();
-      if (window.matchMedia?.("(max-width: 760px)").matches) this.root.classList.add("notes-closed");
+      if (window.matchMedia?.("(max-width: 900px), (max-height: 560px)").matches) this.root.classList.add("notes-closed");
 
       try {
         const source = await this.loadSource(book);
         if (this.destroyed) return;
-        this.currentBytes = source.bytes.slice(0);
+        this.currentBytes = source.bytes ? source.bytes.slice(0) : null;
         this.currentMimeType = source.mimeType;
         this.currentSourceIdentity = source.sourceIdentity;
         this.offlineInput.checked = source.cached;
@@ -808,13 +1079,14 @@
             viewport: this.viewport,
             canvas: this.canvas,
             onLocation: (location) => this.handleLocation(location),
+            onProgress: (message) => this.setLoading(message),
             getPdfJs: () => this.waitForPdfJs(),
             getViewOptions: () => {
               const preferences = this.preferencesApi();
-              return { zoom: preferences.pdfZoom, layout: preferences.layout };
+              return { zoom: preferences.pdfZoom, layout: this.effectivePdfLayout() };
             }
           });
-          await this.engine.load(source.bytes, record);
+          await this.engine.load(source, record);
         } else {
           this.engineLabel.textContent = "Protected Text";
           this.locationLabel.textContent = "Page";
@@ -830,6 +1102,7 @@
         }
         if (!this.destroyed) {
           this.loading.hidden = true;
+          this.stopLoadingClock();
           this.applyPreferences();
         }
       } catch (error) {
@@ -873,8 +1146,13 @@
               <div class="reader-setting"><span>Text size</span><div class="reader-setting-buttons"><button type="button" data-reader-font="down" aria-label="Decrease text size">A−</button><button type="button" data-reader-font="up" aria-label="Increase text size">A+</button></div></div>
               <div class="reader-setting"><span>Zoom</span><div class="reader-setting-buttons"><button type="button" data-reader-zoom="out" aria-label="Zoom out">−</button><button type="button" data-reader-zoom="reset" aria-label="Reset zoom"><span data-reader-zoom-label>100%</span></button><button type="button" data-reader-zoom="in" aria-label="Zoom in">+</button></div></div>
               <div class="reader-setting"><span>Theme</span><div class="reader-setting-buttons"><button type="button" data-reader-theme="paper">Light</button><button type="button" data-reader-theme="sepia">Sepia</button><button type="button" data-reader-theme="night">Dark</button></div></div>
-              <div class="reader-setting"><span>Page layout</span><div class="reader-setting-buttons"><button type="button" data-reader-layout="portrait">Portrait</button><button type="button" data-reader-layout="landscape">Landscape</button></div></div>
+              <div class="reader-setting"><span>Page layout</span><div class="reader-setting-buttons"><button type="button" data-reader-layout="auto">Auto</button><button type="button" data-reader-layout="portrait">Portrait</button><button type="button" data-reader-layout="landscape">Landscape</button></div></div>
               <label class="reader-setting"><span>Line spacing</span><select id="reader-line-height"><option value="1.6">Compact</option><option value="1.95">Comfortable</option><option value="2.2">Relaxed</option></select></label>
+              <div class="reader-setting reader-setting-note">
+                <span>Protection</span>
+                <small id="reader-watermark-code">Loading your watermark…</small>
+                <p>Pages are stamped with your account, a per-session code and the time. A browser cannot stop a phone's own screenshot tool, but every copy stays traceable.</p>
+              </div>
             </div>
             <div class="reader-progress-track" aria-hidden="true"><div class="reader-progress-fill" id="reader-progress-fill"></div></div>
           </header>
@@ -884,7 +1162,7 @@
               <div class="reader-loading" id="reader-loading" role="status"><span class="reader-spinner" aria-hidden="true"></span><p id="reader-loading-text">Checking browser storage…</p></div>
               <canvas id="pdf-canvas" tabindex="0" hidden aria-label="PDF page canvas"></canvas>
               <article class="text-reader-content" id="text-reader-content" tabindex="0" hidden aria-label="Protected book text"></article>
-              <p class="reader-security-note">Protected in-app view · selection and context menus disabled</p>
+              <p class="reader-security-note">Protected in-app view · every page is watermarked to your account · swipe or scroll sideways to turn pages</p>
             </main>
             <aside class="reader-notes" id="reader-notes" aria-label="Page notes">
               <header><div><span>Reading notes</span><h2 id="reader-note-title">Notes</h2></div><span class="reader-note-status" id="reader-note-status">No note here</span></header>
@@ -900,17 +1178,26 @@
     }
 
     /**
-     * Faint, per-account forensic watermark. It does not stop a screenshot,
-     * but it makes casual sharing traceable to the signed-in account.
+     * Faint, per-account forensic watermark. A screenshot cannot be blocked,
+     * but the account, the minute and the per-session code make a shared copy
+     * traceable to one reader session and one page.
      */
-    renderWatermark() {
+    renderWatermark(location = this.lastLocation) {
       const layer = this.root?.querySelector("#reader-watermark");
       if (!layer) return;
-      const text = String(this.watermark?.() || "").trim();
-      if (!text) {
+      const account = String(this.watermark?.() || "").trim();
+      if (!account) {
         layer.hidden = true;
         return;
       }
+      const page = Number(location?.page) || 0;
+      const total = Number(location?.totalPages) || 0;
+      const details = [this.sessionCode];
+      if (page && total) details.push(`p.${page}/${total}`);
+      const text = `${account} · ${details.join(" · ")}`;
+      const codeField = this.root?.querySelector("#reader-watermark-code");
+      if (codeField) codeField.textContent = `${account} · ${this.sessionCode}`;
+      this.watermarkPageKey = page && total ? `${page}/${total}` : "";
       layer.hidden = false;
       const tile = `<span>${escapeHTML(text)}</span>`;
       layer.innerHTML = Array.from({ length: 24 }, () => tile).join("");
@@ -1004,18 +1291,106 @@
       this.viewport.addEventListener("contextmenu", (event) => event.preventDefault());
       this.viewport.addEventListener("copy", (event) => event.preventDefault());
       this.viewport.addEventListener("dragstart", (event) => event.preventDefault());
+      this.bindPageGestures();
       window.addEventListener("resize", this.handleResize);
       window.addEventListener("keydown", this.handleKeydown);
+    }
+
+    /**
+     * Page turning by touch and trackpad. Horizontal swipes or sideways
+     * scrolling always change the page. PDF pages that are taller than the
+     * screen keep native vertical scrolling; once the page is at its bottom a
+     * further upward swipe (or downward wheel) opens the next page.
+     */
+    bindPageGestures() {
+      const stage = this.viewport;
+      let touch = null;
+
+      stage.addEventListener("touchstart", (event) => {
+        if (event.touches.length !== 1) {
+          touch = null;
+          return;
+        }
+        const point = event.touches[0];
+        touch = {
+          x: point.clientX,
+          y: point.clientY,
+          atTop: stage.scrollTop <= 2,
+          atBottom: stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2
+        };
+      }, { passive: true });
+
+      stage.addEventListener("touchend", (event) => {
+        if (!touch) return;
+        const point = event.changedTouches[0];
+        const started = touch;
+        touch = null;
+        this.handlePageGesture(point.clientX - started.x, point.clientY - started.y, started);
+      }, { passive: true });
+
+      stage.addEventListener("wheel", (event) => this.handleWheelNavigation(event), { passive: false });
+    }
+
+    handlePageGesture(dx, dy, started) {
+      if (performance.now() < this.gestureCooldownUntil) return;
+      const horizontallyScrollable = this.viewport.scrollWidth > this.viewport.clientWidth + 4;
+      const horizontal = Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.2;
+      if (horizontal && !horizontallyScrollable) {
+        this.turnPage(dx < 0 ? 1 : -1);
+        return;
+      }
+      if (this.engine?.type !== "pdf") return;
+      if (Math.abs(dy) < 64 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
+      if (dy < 0 && started.atBottom) this.turnPage(1);
+      else if (dy > 0 && started.atTop) this.turnPage(-1);
+    }
+
+    handleWheelNavigation(event) {
+      if (event.ctrlKey) return;
+      const horizontallyScrollable = this.viewport.scrollWidth > this.viewport.clientWidth + 4;
+      const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.15;
+      const shifted = event.shiftKey && Math.abs(event.deltaY) > Math.abs(event.deltaX);
+
+      if ((horizontal || shifted) && !horizontallyScrollable) {
+        event.preventDefault();
+        if (performance.now() < this.gestureCooldownUntil) return;
+        window.clearTimeout(this.wheelResetTimer);
+        this.wheelAccumulator += shifted ? event.deltaY : event.deltaX;
+        this.wheelResetTimer = window.setTimeout(() => { this.wheelAccumulator = 0; }, 260);
+        if (Math.abs(this.wheelAccumulator) < 52) return;
+        const direction = this.wheelAccumulator > 0 ? 1 : -1;
+        this.wheelAccumulator = 0;
+        this.turnPage(direction);
+        return;
+      }
+
+      if (this.engine?.type !== "pdf" || Math.abs(event.deltaY) < 8) return;
+      const stage = this.viewport;
+      const atBottom = stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2;
+      const atTop = stage.scrollTop <= 2;
+      if (event.deltaY > 0 ? !atBottom : !atTop) return;
+      event.preventDefault();
+      this.turnPage(event.deltaY > 0 ? 1 : -1);
+    }
+
+    turnPage(direction) {
+      if (performance.now() < this.gestureCooldownUntil) return;
+      this.gestureCooldownUntil = performance.now() + 420;
+      this.changeLocation(direction > 0 ? "next" : "previous");
     }
 
     applyPreferences() {
       const preferences = this.preferencesApi();
       const theme = ["paper", "sepia", "night"].includes(preferences.theme) ? preferences.theme : "paper";
-      const layout = preferences.layout === "landscape" ? "landscape" : "portrait";
+      const layout = ["auto", "portrait", "landscape"].includes(preferences.layout) ? preferences.layout : "auto";
       const fontSize = clamp(Number(preferences.fontSize) || 1, 0.8, 2);
       const lineHeight = clamp(Number(preferences.lineHeight) || 1.95, 1.4, 2.4);
       this.root.dataset.readerTheme = theme;
       this.root.dataset.readerLayout = layout;
+      // A zoomed PDF may be wider than the stage, so it needs native
+      // horizontal panning; everything else turns pages on a sideways swipe.
+      const pdfZoomed = this.book?.reader?.engine === "pdf" && (Number(preferences.pdfZoom) || 1) > 1;
+      if (this.viewport) this.viewport.style.touchAction = pdfZoomed ? "pan-x pan-y" : "pan-y";
       this.root.style.setProperty("--reader-font-scale", String(fontSize));
       this.root.style.setProperty("--reader-line-height", String(lineHeight));
       this.lineHeightInput.value = String(lineHeight);
@@ -1030,6 +1405,16 @@
       this.updateZoomLabels();
       this.updateThemeToggle(theme);
       if (this.engine) this.engine.resize?.();
+    }
+
+    /**
+     * "Auto" fits the page to the reading width, so a phone held sideways uses
+     * the landscape screen and a desktop page grows with the window. Explicit
+     * Portrait caps the width, Landscape fits the whole page at once.
+     */
+    effectivePdfLayout() {
+      const preference = this.preferencesApi().layout;
+      return ["auto", "portrait", "landscape"].includes(preference) ? preference : "auto";
     }
 
     updateZoomLabels() {
@@ -1100,6 +1485,12 @@
       if (key === "fontSize") next.fontSize = Math.round(clamp(Number(value) || 1, 0.8, 2) * 10) / 10;
       if (key === "pdfZoom") next.pdfZoom = Math.round(clamp(Number(value) || 1, 0.5, 2.5) * 10) / 10;
       if (key === "lineHeight") next.lineHeight = Math.round(clamp(Number(value) || 1.95, 1.4, 2.4) * 100) / 100;
+      if (key === "layout") {
+        next.layout = ["auto", "portrait", "landscape"].includes(value) ? value : "auto";
+        // Remember that the reader made a deliberate choice, so a future
+        // default change never overrides it.
+        next.layoutExplicit = next.layout !== "auto";
+      }
       this.savePreferences(next);
       this.applyPreferences();
     }
@@ -1130,21 +1521,22 @@
       if (book.source === "custom") throw new Error("The uploaded PDF is missing from IndexedDB.");
 
       if (book.reader.engine === "pdf") {
-        this.setLoading("Fetching the PDF edition…");
-        const fetched = await this.fetchDocumentResource(book.reader.sourceUrl, book.reader.mimeType);
+        this.setLoading("Opening the PDF edition…");
+        const sourceUrl = safeDocumentUrl(book.reader.sourceUrl);
+        if (!sourceUrl) throw new Error("The PDF source URL is invalid.");
         return {
           key: book.key,
           sourceIdentity: identity,
           engine: "pdf",
-          mimeType: fetched.mimeType || "application/pdf",
+          mimeType: book.reader.mimeType || "application/pdf",
           title: book.title,
-          bytes: fetched.bytes,
+          url: sourceUrl,
+          bytes: null,
           cached: false
         };
       }
 
-      this.setLoading("Fetching the public-domain text…");
-      const fetched = await this.fetchTextResource(book.reader.sourceUrl, book.reader.mimeType);
+      const fetched = await loadTextDocument(book, (message) => this.setLoading(message));
       return {
         key: book.key,
         sourceIdentity: identity,
@@ -1152,44 +1544,8 @@
         mimeType: fetched.mimeType,
         title: book.title,
         bytes: fetched.bytes,
-        cached: false
+        cached: Boolean(fetched.cached)
       };
-    }
-
-    async fetchTextResource(sourceUrl, expectedMimeType) {
-      const url = safeDocumentUrl(sourceUrl);
-      if (!url) throw new Error("The text source URL is invalid.");
-      this.abortController = new AbortController();
-
-      const request = async (requestUrl) => {
-        const response = await fetch(requestUrl, {
-          headers: { Accept: "text/plain,text/html;q=0.8" },
-          credentials: "omit",
-          cache: "no-store",
-          referrerPolicy: "no-referrer",
-          signal: this.abortController.signal
-        });
-        if (!response.ok) throw new Error(`Text server returned HTTP ${response.status}.`);
-        const declaredSize = Number(response.headers.get("content-length")) || 0;
-        if (declaredSize > Config.MAX_TEXT_BYTES) throw new Error("This text exceeds the reader size limit.");
-        const bytes = await response.arrayBuffer();
-        if (!bytes.byteLength || bytes.byteLength > Config.MAX_TEXT_BYTES) throw new Error("The text response has an invalid size.");
-        return { bytes, mimeType: response.headers.get("content-type") || expectedMimeType || "text/plain" };
-      };
-
-      try {
-        return await request(url);
-      } catch (directError) {
-        if (directError.name === "AbortError") throw directError;
-        // The local backend already returns CORS headers, so proxying it again
-        // would only hide the real error.
-        if (isLoopbackHttp(new URL(url))) throw directError;
-        // Gutenberg download hosts omit browser CORS headers. In this static
-        // demo, a configurable text-only proxy is the fallback. Production
-        // deployments should replace it with an owned same-origin endpoint.
-        const proxyUrl = `${Config.TEXT_PROXY_BASE_URL}${url}`;
-        return request(proxyUrl);
-      }
     }
 
     async fetchDocumentResource(sourceUrl, expectedMimeType) {
@@ -1256,6 +1612,8 @@
         this.state.saveLocation(this.book, location);
       }
       if (pageChanged) this.loadPageMetadata(location.page, location.engine);
+      const pageKey = `${location.page}/${location.totalPages}`;
+      if (pageKey !== this.watermarkPageKey) this.renderWatermark(location);
     }
 
     loadPageMetadata(page, engine) {
@@ -1285,6 +1643,12 @@
 
     changeLocation(direction) {
       this.saveNoteNow();
+      if (direction === "first" || direction === "last") {
+        const total = Number(this.engine?.totalPages) || Number(this.lastLocation?.totalPages) || 1;
+        if (direction === "first") this.engine?.goTo?.(1);
+        else this.engine?.goTo?.(total);
+        return;
+      }
       this.engine?.[direction]?.();
     }
 
@@ -1337,10 +1701,19 @@
     }
 
     async toggleOffline(enabled) {
-      if (!this.currentBytes || this.destroyed || this.book.source === "custom") return;
+      if (this.destroyed || this.book.source === "custom") return;
       this.offlineInput.disabled = true;
       try {
         if (enabled) {
+          // PDFs open through PDF.js range requests, so the full file may not
+          // be in memory yet. Download it once, only when asked to go offline.
+          if (!this.currentBytes && this.book.reader.engine === "pdf") {
+            this.offlineStatus.textContent = "Downloading the full PDF…";
+            const fetched = await this.fetchDocumentResource(this.book.reader.sourceUrl, this.book.reader.mimeType);
+            this.currentBytes = fetched.bytes;
+            this.currentMimeType = fetched.mimeType;
+          }
+          if (!this.currentBytes) return;
           this.offlineStatus.textContent = "Saving in IndexedDB…";
           await this.cache.put({
             key: this.book.key,
@@ -1370,6 +1743,10 @@
     handleResize() {
       window.clearTimeout(this.resizeTimer);
       this.resizeTimer = window.setTimeout(() => {
+        // A phone rotated to landscape has no room for the notes column.
+        if (window.matchMedia?.("(max-height: 560px), (max-width: 900px)").matches) {
+          this.root?.classList.add("notes-closed");
+        }
         this.saveNoteNow();
         this.engine?.resize?.();
         if (this.engine?.type === "text") this.buildChapters();
@@ -1379,8 +1756,25 @@
     handleKeydown(event) {
       const tag = event.target?.tagName?.toLowerCase();
       if (["input", "textarea", "select"].includes(tag)) return;
+      const isPdf = this.engine?.type === "pdf";
       if (event.key === "ArrowLeft") this.changeLocation("previous");
       if (event.key === "ArrowRight") this.changeLocation("next");
+      if (event.key === "PageDown" || (isPdf && event.key === "ArrowDown")) {
+        event.preventDefault();
+        this.changeLocation("next");
+      }
+      if (event.key === "PageUp" || (isPdf && event.key === "ArrowUp")) {
+        event.preventDefault();
+        this.changeLocation("previous");
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        this.changeLocation("first");
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        this.changeLocation("last");
+      }
       if (event.key === "f" || event.key === "F") {
         if (event.ctrlKey || event.metaKey || event.altKey) return;
         event.preventDefault();
@@ -1395,10 +1789,38 @@
     setLoading(message) {
       if (!this.loading) return;
       this.loading.hidden = false;
-      this.loadingText.textContent = message;
+      this.loading.classList.remove("error");
+      this.loadingMessage = message;
+      if (!this.loadingStartedAt) this.loadingStartedAt = Date.now();
+      this.loadingText.textContent = this.loadingLabel();
+    }
+
+    loadingLabel() {
+      if (!this.loadingStartedAt) return this.loadingMessage;
+      const seconds = Math.floor((Date.now() - this.loadingStartedAt) / 1000);
+      if (seconds < 2) return this.loadingMessage;
+      const note = seconds >= 6 ? " · first read saves a cached copy" : "";
+      return `${this.loadingMessage} ${seconds}s${note}`;
+    }
+
+    startLoadingClock() {
+      this.loadingStartedAt = Date.now();
+      this.loadingMessage = this.loadingText?.textContent?.trim() || "Preparing the reader…";
+      window.clearInterval(this.loadingClock);
+      this.loadingClock = window.setInterval(() => {
+        if (!this.loading || this.loading.hidden || this.loading.classList.contains("error")) return;
+        this.loadingText.textContent = this.loadingLabel();
+      }, 500);
+    }
+
+    stopLoadingClock() {
+      window.clearInterval(this.loadingClock);
+      this.loadingClock = null;
+      this.loadingStartedAt = 0;
     }
 
     showError(message) {
+      this.stopLoadingClock();
       this.loading.hidden = false;
       this.loading.classList.add("error");
       this.loading.querySelector(".reader-spinner").hidden = true;
@@ -1412,7 +1834,9 @@
       this.destroyed = true;
       window.clearTimeout(this.noteTimer);
       window.clearTimeout(this.resizeTimer);
+      window.clearTimeout(this.wheelResetTimer);
       window.clearInterval(this.watermarkTimer);
+      this.stopLoadingClock();
       window.removeEventListener("resize", this.handleResize);
       window.removeEventListener("keydown", this.handleKeydown);
       document.removeEventListener("fullscreenchange", this.handleFullscreenChange);
@@ -1423,5 +1847,13 @@
     }
   }
 
-  window.LibraryReaders = Object.freeze({ DocumentCacheService, ReaderManager });
+  window.LibraryReaders = Object.freeze({
+    DocumentCacheService,
+    ReaderManager,
+    /* Warm the text cache before the click so the reader opens instantly. */
+    prefetchText: (book) => {
+      if (!book?.reader || book.reader.engine !== "text") return Promise.resolve(null);
+      return loadTextDocument(book).catch(() => null);
+    }
+  });
 })();

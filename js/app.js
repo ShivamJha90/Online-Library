@@ -863,7 +863,21 @@
     }
 
     getReaderPreferences() {
-      return clone(this.state.preferences.reader || { fontSize: 1, theme: "paper", lineHeight: 1.95, pdfZoom: 1, layout: "portrait" });
+      const stored = clone(this.state.preferences.reader || {});
+      // Older builds stored "portrait" as the implicit default. Treat that as
+      // Auto until the reader explicitly picks a layout.
+      if (!stored.layout || (stored.layout === "portrait" && !stored.layoutExplicit)) {
+        stored.layout = "auto";
+      }
+      return {
+        fontSize: 1,
+        theme: "paper",
+        lineHeight: 1.95,
+        pdfZoom: 1,
+        layout: "auto",
+        layoutExplicit: false,
+        ...stored
+      };
     }
 
     saveReaderPreferences(preferences) {
@@ -873,7 +887,8 @@
           theme: ["paper", "sepia", "night"].includes(preferences.theme) ? preferences.theme : "paper",
           lineHeight: clamp(Number(preferences.lineHeight) || 1.95, 1.4, 2.4),
           pdfZoom: clamp(Number(preferences.pdfZoom) || 1, 0.5, 2.5),
-          layout: preferences.layout === "landscape" ? "landscape" : "portrait"
+          layout: ["auto", "portrait", "landscape"].includes(preferences.layout) ? preferences.layout : "auto",
+          layoutExplicit: Boolean(preferences.layoutExplicit)
         };
       });
     }
@@ -1624,6 +1639,11 @@
       document.addEventListener("keydown", (event) => this.handleKeyboard(event));
       document.addEventListener("error", (event) => this.handleImageError(event), true);
       document.addEventListener("load", (event) => this.handleImageLoad(event), true);
+      // Warm the text cache as soon as a reader link is hovered or pressed, so
+      // the click opens the first page instead of waiting on the network.
+      document.addEventListener("pointerover", (event) => this.prefetchReadable(event), { passive: true });
+      document.addEventListener("pointerdown", (event) => this.prefetchReadable(event), { passive: true });
+      document.addEventListener("focusin", (event) => this.prefetchReadable(event));
       window.addEventListener("storage", (event) => this.handleStorageChange(event));
       window.addEventListener("online", () => {
         this.updateNetworkState(true);
@@ -1650,6 +1670,9 @@
         this.ensureDeviceSession();
       });
       window.addEventListener("blur", () => this.setShield(true));
+      // Android/iOS freeze a backgrounded page without always firing blur.
+      window.addEventListener("freeze", () => this.setShield(true));
+      window.addEventListener("resume", () => this.setShield(false));
       window.addEventListener("unhandledrejection", (event) => {
         console.error("Unhandled ScholarScroll promise rejection.", event.reason);
       });
@@ -3195,6 +3218,26 @@
         return;
       }
       this.startReader(book);
+    }
+
+    /**
+     * Quietly download a text edition when the reader is about to be opened.
+     * This is why a hovered or touched book now starts on page one almost
+     * immediately even though the full text is several hundred kilobytes.
+     */
+    prefetchReadable(event) {
+      const trigger = event.target?.closest?.("[data-action='read-book']");
+      if (!trigger) return;
+      const book = this.findBook(trigger.dataset.bookKey);
+      if (!book?.reader || book.reader.engine !== "text") return;
+      if (!this.store.currentUser) return;
+      if (book.premium && !this.store.hasPremiumAccess(book.key)) return;
+      if (book.hindi && this.backend?.available) return;
+      const now = Date.now();
+      this.prefetchedBooks ||= new Map();
+      if (now - (this.prefetchedBooks.get(book.key) || 0) < 120000) return;
+      this.prefetchedBooks.set(book.key, now);
+      window.LibraryReaders?.prefetchText?.(book);
     }
 
     startReader(book) {

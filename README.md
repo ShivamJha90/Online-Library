@@ -17,7 +17,8 @@
 
 ### हिंदी पुस्तकालय (Hindi classics)
 - A free shelf of **29 Hindi works** across literature, scripture and general knowledge: the Bhagavad Gita, Valmiki Ramayan, Ramcharitmanas, two Mahabharat parvas, Chanakya Niti, Godaan, Premchand stories, Bhagwat/Shiv/Vishnu Puran, Kabir Bijak, Hitopadesh, Panchatantra, Yoga Vasistha, Surdas and Meera, plus Ayurveda (Charak Samhita), yoga, drama (Andher Nangari), autobiography (Satya ke Prayog), medieval history, Indian science, Hindi grammar, Jyotish and Tantra.
-- **26 titles are readable in the browser** from Internet Archive scans. The local backend proxies and caches their `_djvu.txt` text so the browser avoids Archive.org's CORS limits and repeat reads are instant.
+- **26 titles are readable in the browser** from Internet Archive scans.
+- **Most of them ship in this repository** as gzipped UTF-8 text in `assets/text/` (listed in `assets/text/manifest.json`). The reader checks that manifest first, so those editions open instantly and work offline; anything not bundled still comes from Archive.org or the backend proxy and is cached after the first read.
 - **3 titles are link-only** (`मीराबाई`, `कौटिल्य अर्थशास्त्र`, `गरुड़ पुराण`) because no clean public-domain full text was available; each card links to the original source.
 - Category filters, Devanagari covers, a storefront teaser and dashboard/settings cross-links.
 - With the backend offline the reader tries the Archive.org URL directly and falls back gracefully; the original source link always works.
@@ -32,7 +33,8 @@
 ### Reader
 - Text/HTML reader with allowlist-based sanitization, Gutenberg licence-wrapper removal, and charset detection.
 - **Paginated page sheets**: each page is a fixed-height sheet with a 52 px desk gap and a `Page N of M` footer, so page boundaries and the page count are unambiguous. Rendered sheets use `content-visibility: auto`, so font-size changes reflow in well under a second even on a 2 MB edition.
-- Administrator and bundled PDFs are rendered with PDF.js onto a canvas.
+- Administrator and bundled PDFs are rendered with PDF.js onto a canvas. Bundled PDFs load through **byte-range requests** (`rangeChunkSize`, auto-fetch disabled), so the first page paints from the first ~256 KB instead of waiting for a multi-megabyte file; the loading panel reports real percent progress. The service worker leaves range requests to the browser so `206` responses are never replaced by a cached full body.
+- **Opening speed:** bundled Hindi and Gutenberg texts are fetched once, validated and kept in Cache Storage (`scholarscroll-text-v1`); hovering, focusing or tapping a readable card starts that prefetch, so repeat opens are near-instant.
 - **Zoom controls** in the toolbar (`−`, percentage, `+`, and click-to-reset) plus the same controls in the appearance panel.
 - **Portrait / landscape layout**: portrait fits the page width and scrolls; landscape fits the page height and uses two columns for text editions.
 - **Light, sepia and dark themes**, with a one-click light/dark toggle in the toolbar.
@@ -67,8 +69,9 @@
 - Premium gating is enforced in the reader entry points and in the direct `#reader/<book-key>` route, so a copied URL cannot bypass a locked title.
 
 ### Content protection and device limit
-- **Best-effort screenshot protection:** the reading surface is blacked out when the window loses focus or the tab is hidden, and `PrintScreen`, `Ctrl/Cmd+P` and `Ctrl/Cmd+S` are intercepted. Copy, cut and the context menu are blocked inside the reader, reader pages print as a black notice, and a faint per-account watermark with a live date/time is drawn over the reader.
-- Browser JavaScript cannot stop an operating-system screenshot tool or a camera. This is a deterrent, not DRM: an OS capture is written to disk before the page hears anything, so the watermark is what makes a shared copy traceable.
+- **Best-effort capture protection:** the reading surface is blacked out when the window loses focus, the tab is hidden or a frozen page is resumed, and `PrintScreen`, `Ctrl/Cmd+P` and `Ctrl/Cmd+S` are intercepted. Copy, cut and the context menu are blocked inside the reader, and reader pages print as a black notice.
+- **Per-account watermark with a unique code:** every page is stamped with the signed-in email, a per-session code (`SS-XXXX-XXXX`), the minute and `p.N/M`. The code is shown again in the appearance panel so a reader can confirm which session a page belongs to. It refreshes on every page turn and every minute, so a screenshot can be tied to an account, a session and a rough time.
+- Browser JavaScript cannot stop an operating-system screenshot tool or a camera. **On phones this is the honest limit:** Android and iOS screenshot tools capture the screen without firing any event the page can observe, so no website can black the screen for them. What the app can do - and does - is make every capture traceable through the watermark and code. Blocking captures outright needs a native app (Android `FLAG_SECURE` / iOS secure text entry). The reader states this plainly instead of pretending the screen is blocked.
 - An account may be active on at most **2 devices**. Signing in on a third device automatically disconnects the least recently used session. Active devices are listed in Settings with a manual **Disconnect** action.
 - With the local backend running, device sessions are enforced on the server and the evicted browser is signed out on its next heartbeat. Without it, the limit is enforced inside the local browser profile.
 
@@ -219,6 +222,8 @@ server/app.py              Zero-dependency Python/SQLite backend (API + static h
 server/data/               Local SQLite database (git-ignored, created on first run)
 assets/                    Optimized logo, favicon, PWA icons
 assets/premium/            User-supplied premium PDF reader editions
+assets/text/               Bundled gzipped Hindi texts + manifest.json (instant, offline)
+api/text.js                Same-origin Vercel text proxy for CORS-blocked book hosts
 sw.js                      Offline app-shell/runtime worker
 manifest.webmanifest       PWA manifest
 robots.txt, sitemap.xml    Crawler hints (replace example origin)
@@ -283,7 +288,8 @@ These items are intentionally documented rather than faked:
 - **Archive.org can be slow or rate-limited.** Hindi text is proxied and cached by the backend, but a first download can fail. The UI then links to the original source instead of pretending to have the text.
 - **Google Fonts / PDF.js CDNs.** These are external dependencies. Self-host them for a fully offline, privacy-hardened deployment.
 - **IndexedDB is not DRM.** Users with browser control can inspect stored documents. Protect licensed content on the server.
-- **Screenshot protection is best-effort.** JavaScript can black the page on blur, intercept common shortcuts and add a per-account watermark, but it cannot block an OS-level screenshot tool, a camera, or a modified browser.
+- **Screenshot protection is best-effort.** JavaScript can black the page on blur, intercept common shortcuts and stamp every page with the account, a per-session code and the time, but it cannot block an OS-level screenshot tool, a camera, or a modified browser. **Phone screenshots in particular cannot be intercepted by any website:** Android and iOS capture the screen without notifying the page. Blocking them needs a native shell (Android `FLAG_SECURE`, iOS secure text entry).
+- **Bundled text adds repository weight.** `assets/text/` holds about 13 MB of gzipped public-domain Hindi text so those editions open instantly and work offline. Without the folder the reader still works through Archive.org and the proxy.
 - **The static build still has local-only vouchers and devices.** If the backend is offline, single-use vouchers and the two-device limit are enforced only in the browser profile.
 - **Modern bestsellers are previews only unless a PDF was supplied.** *Rich Dad Poor Dad* and *The 7 Habits of Highly Effective People* remain copyrighted; the app links out to licensed sources instead of hosting their text. The user-supplied reader editions in `assets/premium/` are included at the project owner's request and are not a licence to redistribute them. Confirm that you hold the rights to each title before publishing them.
 - **Hindi scans vary in OCR quality.** Some Archive.org texts contain OCR errors, and a few titles are link-only because no clean public-domain copy was available.
