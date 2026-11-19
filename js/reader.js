@@ -1018,6 +1018,7 @@
       this.notePage = null;
       this.noteTimer = null;
       this.resizeTimer = null;
+      this.resizeSettleTimer = null;
       this.lastLocation = null;
       this.lastSavedAt = 0;
       this.destroyed = false;
@@ -1753,6 +1754,15 @@
         this.saveNoteNow();
         this.engine?.resize?.();
         if (this.engine?.type === "text") this.buildChapters();
+        // The notes column animates over 180 ms, so the first measurement can
+        // still see the old stage width. Measure once more after it settles so
+        // a rotated PDF fills the screen instead of keeping a half-width page.
+        window.clearTimeout(this.resizeSettleTimer);
+        this.resizeSettleTimer = window.setTimeout(() => {
+          if (this.destroyed) return;
+          this.engine?.resize?.();
+          if (this.engine?.type === "text") this.buildChapters();
+        }, 240);
       }, 180);
     }
 
@@ -1837,6 +1847,7 @@
       this.destroyed = true;
       window.clearTimeout(this.noteTimer);
       window.clearTimeout(this.resizeTimer);
+      window.clearTimeout(this.resizeSettleTimer);
       window.clearTimeout(this.wheelResetTimer);
       window.clearInterval(this.watermarkTimer);
       this.stopLoadingClock();
