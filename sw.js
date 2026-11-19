@@ -7,7 +7,7 @@
  */
 "use strict";
 
-const VERSION = "v35";
+const VERSION = "v36";
 const SHELL_CACHE = `scholarscroll-shell-${VERSION}`;
 const RUNTIME_CACHE = `scholarscroll-runtime-${VERSION}`;
 const API_CACHE = `scholarscroll-api-${VERSION}`;
@@ -15,13 +15,13 @@ const API_CACHE = `scholarscroll-api-${VERSION}`;
 const SHELL_ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=37",
-  "./js/data.js?v=37",
-  "./js/api.js?v=37",
-  "./js/backend.js?v=37",
-  "./js/reader.js?v=37",
-  "./js/app.js?v=37",
-  "./js/vendor/qrcode.js?v=37",
+  "./css/styles.css?v=38",
+  "./js/data.js?v=38",
+  "./js/api.js?v=38",
+  "./js/backend.js?v=38",
+  "./js/reader.js?v=38",
+  "./js/app.js?v=38",
+  "./js/vendor/qrcode.js?v=38",
   "./manifest.webmanifest",
   "./assets/logo-96.png",
   "./assets/favicon-32.png",
@@ -89,6 +89,11 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
+
+  // PDF.js reads byte ranges and aborts its own header probe. A worker-held
+  // clone can keep that aborted stream open, so PDFs go straight to the
+  // network (and the browser's normal HTTP cache).
+  if (request.headers.has("range") || url.pathname.toLowerCase().endsWith(".pdf")) return;
 
   // The Python/SQLite backend must never be served from the offline cache:
   // sessions, entitlements, vouchers and device checks are live data.
