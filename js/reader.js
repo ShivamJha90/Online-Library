@@ -508,7 +508,10 @@
         options.url = source.url;
         options.rangeChunkSize = 262144;
         options.disableAutoFetch = true;
-        options.disableStream = false;
+        // PDF.js probes the URL with a full GET to read its headers. Disabling
+        // streaming makes it abort that body as soon as the origin confirms
+        // range support, so a 6 MB PDF never downloads in full just to start.
+        options.disableStream = true;
       } else {
         throw new Error("The PDF source is invalid.");
       }
